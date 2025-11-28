@@ -9,6 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
+    <script src="pli-data.js"></script>
+    <script src="pli-calc.js"></script>
+    
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -24,8 +27,14 @@
             </div>
         </header>
 
+        <div class="nav-tabs">
+            <button class="tab active" id="tab-savings" onclick="switchTab('savings')">🏦 Savings Schemes</button>
+            <button class="tab" id="tab-insurance" onclick="switchTab('insurance')">☂️ Postal Insurance</button>
+        </div>
+
         <div class="container">
-            <div class="card input-section">
+            
+            <div id="section-savings" class="card input-section">
                 <h3>Select Scheme</h3>
                 <select id="schemeSelector">
                     <option value="">-- Choose Saving Scheme --</option>
@@ -43,6 +52,38 @@
                 <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
                     <span>ℹ️ View Scheme Details</span>
                 </button>
+            </div>
+
+            <div id="section-insurance" class="card input-section hidden">
+                <h3>Postal Life Insurance</h3>
+                
+                <label>Select Plan</label>
+                <div class="pli-toggle-wrapper">
+                    <div class="pli-opt active" onclick="setPLIType('pli-ea')">Santosh (Endowment)</div>
+                    <div class="pli-opt" onclick="setPLIType('pli-wla')">Suraksha (Whole Life)</div>
+                </div>
+
+                <label>Insurant Date of Birth <span style="color:red">*</span> <span id="ageBadge" class="hidden"></span></label>
+                <input type="date" id="pliDOB" onchange="updateAgeBadge()">
+                <small style="color:#777; font-size:0.7rem;">Calculates 'Age Next Birthday' (ANB)</small>
+
+                <label>Sum Assured (₹)</label>
+                <input type="number" id="pliSumAssured" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
+                <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
+
+                <label>Age at Maturity</label>
+                <select id="pliMatAge">
+                    <option value="35">35 Years</option>
+                    <option value="40">40 Years</option>
+                    <option value="50">50 Years</option>
+                    <option value="55">55 Years</option>
+                    <option value="58">58 Years</option>
+                    <option value="60" selected>60 Years</option>
+                    <option value="80">80 Years (Suraksha)</option>
+                </select>
+                
+                <div id="pliWarning" class="warning-box"></div>
+                <button class="btn btn-calc" id="btnCalcPLI">Calculate Premium</button>
             </div>
 
             <div class="card hidden" id="inputCard">
@@ -225,4 +266,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-    </html>
+                                </html>

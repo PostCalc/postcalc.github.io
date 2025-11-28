@@ -1,5 +1,5 @@
-// ✅ Version v17 (Stronger Cache Strategy)
-const CACHE_NAME = "postcalc-cache-v17";
+// ✅ Version v18 (Stronger Cache Strategy)
+const CACHE_NAME = "postcalc-cache-v18";
 
 // Files to cache immediately on install
 const PRECACHE_ASSETS = [

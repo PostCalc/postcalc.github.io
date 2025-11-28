@@ -610,3 +610,218 @@ function showWarn(m) {
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
            }
+/* =========================================
+   PART 3: PLI / RPLI CONTROLLER (NEW ADDITION)
+   ========================================= */
+
+// Global Variables for Insurance Logic
+var currentPLIScheme = 'pli-ea'; 
+var currentPLIData = null; 
+
+/* --- 1. GLOBAL FUNCTIONS (So HTML onclick works) --- */
+
+window.switchTab = function(tab) {
+    // Toggle Active Tab Style
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    // Toggle Section Visibility
+    if (tab === 'savings') {
+        document.getElementById('section-savings').classList.remove('hidden');
+        document.getElementById('section-insurance').classList.add('hidden');
+        
+        // Hide PLI Results, Show Savings inputs if reset
+        document.getElementById('pliResultCard').classList.add('hidden'); 
+        document.getElementById('inputCard').classList.add('hidden'); 
+        document.getElementById('resultsCard').classList.add('hidden'); 
+        
+        // Reset Savings Dropdown
+        document.getElementById('schemeSelector').value = "";
+    } else {
+        document.getElementById('section-savings').classList.add('hidden');
+        document.getElementById('section-insurance').classList.remove('hidden');
+        
+        // Hide Savings Results
+        document.getElementById('inputCard').classList.add('hidden');
+        document.getElementById('resultsCard').classList.add('hidden');
+    }
+};
+
+window.setPLIType = function(type) {
+    currentPLIScheme = type;
+    // Update Pill Toggle Visuals
+    document.querySelectorAll('.pli-opt').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+};
+
+window.closePLIResult = function() {
+    document.getElementById('pliResultCard').classList.add('hidden');
+    document.getElementById('section-insurance').classList.remove('hidden');
+};
+
+window.updateFreq = function(freq) {
+    if(!currentPLIData) return;
+
+    // Update Frequency Tab Style
+    document.querySelectorAll('.f-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Re-Calculate Table with new Frequency
+    if(typeof PLI_Engine !== 'undefined') {
+        const result = PLI_Engine.generateTable(currentPLIScheme, currentPLIData.dob, currentPLIData.sa, freq);
+        renderPLITable(result.rows);
+    }
+};
+
+/* --- 2. PLI EVENT LISTENERS --- */
+// We check if the button exists before adding listener to avoid errors
+const btnPLI = document.getElementById('btnCalcPLI');
+if(btnPLI) {
+    btnPLI.addEventListener('click', () => {
+        const dob = document.getElementById('pliDOB').value;
+        const sa = parseFloat(document.getElementById('pliSumAssured').value);
+        
+        // Validation
+        if(!dob) { alert("Please select Date of Birth"); return; }
+        if(!sa || sa < 20000) { alert("Minimum Sum Assured is ₹20,000"); return; }
+
+        // Check if Engine is loaded
+        if(typeof PLI_Engine === 'undefined') {
+            alert("Error: pli-calc.js not loaded!"); return;
+        }
+
+        // Generate Table (Monthly Default)
+        const result = PLI_Engine.generateTable(currentPLIScheme, dob, sa, 1);
+        
+        if(result.error) {
+            alert(result.error); return;
+        }
+
+        // Store Data & Render
+        currentPLIData = { dob: dob, sa: sa, rawResult: result };
+        document.getElementById('resAnb').innerText = result.anb + " Years";
+        renderPLITable(result.rows);
+
+        // Show Result
+        document.getElementById('section-insurance').classList.add('hidden');
+        document.getElementById('pliResultCard').classList.remove('hidden');
+    });
+}
+
+/* --- 3. HELPER: RENDER PLI TABLE --- */
+function renderPLITable(rows) {
+    const tbody = document.getElementById('pliTableBody');
+    if(!tbody) return;
+
+    if(rows.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px;'>No eligible plans found.</td></tr>";
+        return;
+    }
+
+    // Helper to format currency
+    const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+
+    tbody.innerHTML = rows.map(r => `
+        <tr>
+            <td style="text-align:center; font-weight:600;">${r.matAge}</td>
+            <td style="text-align:center;">${r.term} Yrs</td>
+            <td>${fmt(r.base)}</td>
+            <td>${fmt(r.rebate)}</td>
+            <td>${fmt(r.net)}</td>
+            <td>${fmt(r.bonus)}</td>
+            <td>${fmt(r.maturity)}</td>
+        </tr>
+    `).join('');
+}
+
+/* --- 4. OVERWRITE SHARE FUNCTION (To Handle Both) --- */
+// Replacing the old captureAndShare with a smarter version
+window.captureAndShare = function() {
+    // 1. Detect Active Screen (Savings vs PLI)
+    const isPLI = !document.getElementById('pliResultCard').classList.contains('hidden');
+    const sourceId = isPLI ? 'pliResultCard' : 'resultsCard';
+    const source = document.getElementById(sourceId);
+
+    // 2. Find the correct button to show "Processing..."
+    let btn = isPLI ? document.querySelector('#pliResultCard .btn-calc') : document.getElementById('btnShare');
+    
+    // Fallback if button not found inside card
+    if(!btn && isPLI) btn = document.querySelector('button[onclick="captureAndShare()"]');
+    
+    if(!btn) return; 
+    const originalText = btn.innerText;
+    
+    // 3. UI Feedback
+    btn.innerText = "⏳ Processing..."; 
+    btn.disabled = true;
+
+    // 4. Create Virtual A4 Page
+    const clone = source.cloneNode(true);
+    
+    // Hide buttons in the screenshot
+    const actions = clone.querySelector('.download-actions') || clone.querySelector('div[style*="text-align:center"]');
+    if(actions) actions.style.display = 'none';
+    
+    // Remove the "Close" (X) button if it's PLI
+    const closeBtn = clone.querySelector('button[onclick*="closePLIResult()"]');
+    if(closeBtn) closeBtn.style.display = 'none';
+
+    // Set A4 Dimensions & Style
+    clone.style.width = '794px'; 
+    clone.style.minHeight = 'auto'; 
+    clone.style.padding = '40px';
+    clone.style.background = 'white';
+    clone.style.position = 'fixed'; 
+    clone.style.top = '0'; 
+    clone.style.left = '0';
+    clone.style.zIndex = '-100'; 
+    
+    // Fix Table Display
+    const tableWrap = clone.querySelector('.table-wrapper');
+    if(tableWrap) { 
+        tableWrap.style.overflow = 'visible'; 
+        tableWrap.style.border = 'none'; 
+    }
+    const table = clone.querySelector('table');
+    if(table) table.style.width = '100%';
+    
+    // Text Wrapping Fix
+    clone.querySelectorAll('th, td').forEach(cell => {
+        cell.style.whiteSpace = 'normal'; 
+    });
+
+    document.body.appendChild(clone);
+
+    // 5. Capture
+    html2canvas(clone, { 
+        scale: 2, 
+        useCORS: true, 
+        scrollY: -window.scrollY
+    }).then(async canvas => {
+        document.body.removeChild(clone); // Cleanup
+        
+        canvas.toBlob(async (blob) => {
+            const fileName = isPLI ? "PostCalc-Insurance-Quote.png" : "PostCalc-Savings-Report.png";
+            const file = new File([blob], fileName, { type: "image/png" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file] });
+                } catch (err) { console.log("Share cancelled", err); }
+            } else {
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+    }).catch(err => {
+        console.error(err);
+        btn.innerText = originalText;
+        btn.disabled = false;
+        alert("Error generating image.");
+    });
+};

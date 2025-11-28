@@ -1,75 +1,82 @@
 /* pli-calc.js */
 const PLI_Engine = {
-    calculate: (schemeCode, dobStr, sa, matAge) => {
+    // Main function: Generates the full comparison table
+    generateTable: (schemeCode, dobStr, sa, freqMode = 1) => {
         const data = PLI_DATA[schemeCode];
         if (!data) return { error: "Scheme data not found." };
 
-        // 1. Calculate Age on Next Birthday (ANB)
+        // 1. Calculate Age Next Birthday (ANB)
         const dob = new Date(dobStr);
         const today = new Date();
-        
         let age = today.getFullYear() - dob.getFullYear();
         const m = today.getMonth() - dob.getMonth();
-        
-        // Exact age check
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-            age--; 
-        }
-        
-        const anb = age + 1; // India Post Logic: Next Birthday
-        
-        if (anb < 19 || anb > 55) return { error: `Age ${anb} is outside eligibility (19-55 years).` };
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--; 
+        const anb = age + 1; // Postal Age Rule
 
-        // 2. Get Premium Rate
-        const maturityRates = data.rates[matAge];
-        if (!maturityRates) return { error: `Maturity Age ${matAge} not available for this plan.` };
-        
-        let rate = maturityRates[anb];
-        // Fallback for missing exact ages in demo data
-        if (!rate) return { error: `Rate for Age ${anb} (Mat ${matAge}) is missing in data file.` };
+        if (anb < 19 || anb > 55) return { error: `Age ${anb} is not eligible (19-55).` };
 
-        // 3. Math Logic (Base Premium)
-        let basePremium = (sa / 1000) * rate;
+        let tableRows = [];
 
-        // Rebate Calculation (₹1 per 20k)
-        let rebate = 0;
-        if (sa >= data.rebate_step) {
-            rebate = Math.floor(sa / data.rebate_step) * data.rebate_val;
-        }
+        // 2. Loop through ALL Maturity Ages (35, 40, 45, 50...)
+        data.maturity_ages.forEach(matAge => {
+            // Check validity (Must be > current age)
+            let term = matAge - anb;
+            if (term < 5) return; // Minimum term check
 
-        // GST Logic (Sep 2025: Exempt/0%)
-        let netPremium = basePremium - rebate;
-        if(netPremium < 0) netPremium = 0;
+            // Get Rate
+            let rateTable = data.rates[matAge];
+            let rate = rateTable ? rateTable[anb] : null;
 
-        // 4. Bonus Calculation
-        let term = matAge - anb;
-        if(term <= 0) return { error: "Maturity Age must be greater than Current Age." };
-        
-        let totalBonus = (sa / 1000) * data.bonus_rate * term;
+            // Use Fallback if exact age missing (for demo purposes)
+            if (!rate && rateTable) {
+                // Find nearest age key
+                let keys = Object.keys(rateTable).map(Number);
+                let closest = keys.reduce((prev, curr) => Math.abs(curr - anb) < Math.abs(prev - anb) ? curr : prev);
+                rate = rateTable[closest];
+            }
 
-        // Terminal Bonus (If Term >= 20 Years)
-        let terminalBonus = 0;
-        if (term >= 20 && (schemeCode === 'pli-ea' || schemeCode === 'pli-wla')) {
-            terminalBonus = (sa / 10000) * 20; 
-            if (terminalBonus > 1000) terminalBonus = 1000; // Max Cap
-        }
-        
-        let totalMaturity = sa + totalBonus + terminalBonus;
+            if (rate) {
+                // 3. Calculate Premium (Monthly Base)
+                let basePrem = (sa / 1000) * rate;
+                
+                // Frequency Logic (Monthly=1, Quarterly=3, Half=6, Yearly=12)
+                let freqMult = freqMode; 
+                let freqPrem = basePrem * freqMult;
 
-        // 5. Generate Rows for Table
-        let rows = [];
-        rows.push({ lbl: `Base Premium (Age ${anb})`, op: '-', dep: basePremium.toFixed(2), int: '-', cl: '-' });
-        rows.push({ lbl: 'Rebate', op: '-', dep: `-${rebate.toFixed(2)}`, int: '-', cl: '-' });
-        rows.push({ lbl: 'GST (Exempt 0%)', op: '-', dep: '0.00', int: '-', cl: '-' });
-        
+                // Rebate Logic (1 Re per 20k per month)
+                let rebatePerMonth = 0;
+                if (sa >= data.rebate_step) {
+                    rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;
+                }
+                let totalRebate = rebatePerMonth * freqMult;
+
+                // Net Premium
+                let netPrem = freqPrem - totalRebate;
+                if(netPrem < 0) netPrem = 0;
+
+                // GST (0%)
+                let gst = 0; 
+
+                // Bonus
+                let totalBonus = (sa / 1000) * data.bonus_rate * term;
+                let maturityVal = sa + totalBonus;
+
+                tableRows.push({
+                    matAge: matAge,
+                    term: term,
+                    base: freqPrem,
+                    rebate: totalRebate,
+                    net: netPrem,
+                    bonus: totalBonus,
+                    maturity: maturityVal
+                });
+            }
+        });
+
         return {
-            dep: netPremium, // Monthly Pay
-            int: totalBonus + terminalBonus,
-            mat: totalMaturity,
-            date: new Date(new Date().setFullYear(new Date().getFullYear() + term)),
-            rows: rows,
-            type: 'insurance',
-            anb: anb
+            anb: anb,
+            rows: tableRows,
+            sa: sa
         };
     }
 };

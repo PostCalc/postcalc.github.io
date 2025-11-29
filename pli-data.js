@@ -1,22 +1,23 @@
-/* pli-data.js - CORRECTED GROSS RATES (Base Premium before Rebate) */
-// Version 8 (Sep 2025)
+/* pli-data.js - Universal Gross Rates (Base Rate before Rebate) */
+// Derived from Official Version 8 Tables (Sep 2025)
 
 const PLI_DATA = {
-    // === 1. PLI - SANTOSH (Endowment) ===
+    // === 1. PLI - SANTOSH (Endowment Assurance) ===
     'pli-ea': {
         name: "PLI - Santosh (Endowment)",
-        bonus_rate: 52, 
+        bonus_rate: 52, // ₹52 per ₹1000
         rebate_step: 20000,
         rebate_val: 1,
         maturity_ages: [35, 40, 45, 50, 55, 58, 60],
         rates: {
-            // Rates = (Chart Value + 50) / 1000
+            // Formula: (Chart_Value_10L + 50) / 1000
             35: { 19: 5.20, 20: 5.40, 25: 8.40, 30: 17.20 },
             40: { 19: 3.80, 20: 4.00, 25: 5.40, 30: 8.40, 35: 17.20 },
             45: { 19: 3.00, 20: 3.20, 25: 4.00, 30: 5.60, 35: 8.40, 40: 17.20 },
             50: { 19: 2.40, 20: 2.60, 25: 3.20, 30: 4.00, 35: 5.50, 40: 8.60, 45: 17.40 },
             55: { 19: 2.00, 20: 2.00, 25: 2.60, 30: 3.20, 35: 4.00, 40: 5.60, 45: 8.60, 50: 17.60 },
             58: { 19: 1.80, 20: 2.00, 25: 2.40, 30: 2.80, 35: 3.60, 40: 4.60, 45: 6.60, 50: 11.00, 55: 29.00 },
+            // Mat 60 (Populated from Chart)
             60: { 
                 19: 1.80, 20: 1.80, 21: 1.85, 22: 1.90, 23: 1.95, 24: 2.00,
                 25: 2.10, 26: 2.20, 27: 2.30, 28: 2.40, 29: 2.50, 30: 2.60,
@@ -28,7 +29,7 @@ const PLI_DATA = {
         }
     },
 
-    // === 2. RPLI - GRAM SANTOSH (Endowment) ===
+    // === 2. RPLI - GRAM SANTOSH (Endowment Assurance) ===
     'rpli-ea': {
         name: "RPLI - Gram Santosh",
         bonus_rate: 48, 
@@ -36,28 +37,39 @@ const PLI_DATA = {
         rebate_val: 1,
         maturity_ages: [35, 40, 45, 50, 55, 58, 60],
         rates: {
-            // Rates = (Chart Value + 5) / 100
-            // Example: Mat 35 Age 19 Chart=505. Gross=510. Rate=5.10
+            // Formula: (Chart_Value_1L + 5) / 100
             35: { 19: 5.10, 20: 5.45, 25: 8.40, 30: 17.25 },
             40: { 19: 3.75, 20: 3.95, 25: 5.45, 30: 8.40, 35: 17.25 },
             45: { 19: 2.95, 20: 3.10, 25: 3.95, 30: 5.50, 35: 8.40, 40: 17.25 },
             50: { 19: 2.40, 20: 2.50, 25: 3.10, 30: 4.00, 35: 5.15, 40: 8.50, 45: 17.25 },
             55: { 19: 2.00, 20: 2.05, 25: 2.50, 30: 3.15, 35: 3.85, 40: 5.50, 45: 8.50, 50: 17.25 },
             58: { 19: 1.85, 20: 1.90, 25: 2.25, 30: 2.75, 35: 3.35, 40: 4.50, 45: 6.45, 50: 10.75, 55: 28.30 },
-            // Mat 60 Age 20 Chart=175. Gross=180. Rate=1.80
+            // Mat 60 (Populated from Green Chart)
             60: { 19: 1.75, 20: 1.80, 21: 1.85, 22: 1.90, 23: 1.95, 24: 2.00, 25: 2.10, 26: 2.20, 27: 2.30, 28: 2.40, 29: 2.50, 30: 2.60, 31: 2.70, 32: 2.80, 33: 2.90, 34: 3.05, 35: 3.20, 36: 3.35, 37: 3.55, 38: 3.75, 39: 3.95, 40: 4.20, 45: 5.75, 50: 8.85, 55: 17.55 }
         }
     },
 
-    // === 3. SURAKSHA ===
+    // === 3. PLI - SURAKSHA (Whole Life) ===
     'pli-wla': {
         name: "PLI - Suraksha (Whole Life)",
-        bonus_rate: 76, rebate_step: 20000, rebate_val: 1, maturity_ages: [80],
-        rates: { 80: { 19: 1.40, 20: 1.45, 25: 1.70, 30: 2.20, 35: 2.70, 40: 3.60, 45: 5.00, 50: 7.30 } }
+        bonus_rate: 76,
+        rebate_step: 20000,
+        rebate_val: 1,
+        maturity_ages: [80],
+        rates: {
+            80: { 19: 1.40, 20: 1.45, 25: 1.70, 30: 2.20, 35: 2.70, 40: 3.60, 45: 5.00, 50: 7.30 }
+        }
     },
+
+    // === 4. RPLI - GRAM SURAKSHA (Whole Life) ===
     'rpli-wla': {
         name: "RPLI - Gram Suraksha",
-        bonus_rate: 60, rebate_step: 20000, rebate_val: 1, maturity_ages: [80],
-        rates: { 80: { 19: 1.50, 20: 1.55, 25: 1.85, 30: 2.30, 35: 2.85, 40: 3.70, 45: 5.05 } }
+        bonus_rate: 60,
+        rebate_step: 20000,
+        rebate_val: 1,
+        maturity_ages: [80],
+        rates: {
+            80: { 19: 1.50, 20: 1.55, 25: 1.85, 30: 2.30, 35: 2.85, 40: 3.70, 45: 5.05 }
+        }
     }
 };

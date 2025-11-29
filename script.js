@@ -647,12 +647,38 @@ window.switchTab = function(tab) {
     }
 };
 
+/* --- SMART PLI TOGGLE --- */
 window.setPLIType = function(type) {
-    currentPLIScheme = type;
-    // Update Pill Toggle Visuals
+    // 1. Detect Base Type (PLI or RPLI)
+    let isRPLI = type.includes('rpli');
+    
+    // 2. Update Toggle Visuals
     document.querySelectorAll('.pli-opt').forEach(el => el.classList.remove('active'));
-    event.target.classList.add('active');
+    // Find which button was clicked based on 'type' logic
+    let activeBtn = isRPLI ? document.querySelectorAll('.pli-opt')[1] : document.querySelectorAll('.pli-opt')[0];
+    activeBtn.classList.add('active');
+
+    // 3. Update Dropdown Options
+    const select = document.getElementById('pliProduct');
+    if(isRPLI) {
+        select.innerHTML = `
+            <option value="rpli-ea">Gram Santosh (Endowment)</option>
+            <option value="rpli-wla">Gram Suraksha (Whole Life)</option>
+        `;
+        currentPLIScheme = 'rpli-ea'; // Default to Gram Santosh
+    } else {
+        select.innerHTML = `
+            <option value="pli-ea">Santosh (Endowment)</option>
+            <option value="pli-wla">Suraksha (Whole Life)</option>
+        `;
+        currentPLIScheme = 'pli-ea'; // Default to Santosh
+    }
 };
+
+// Also add this listener to update 'currentPLIScheme' when dropdown changes
+document.getElementById('pliProduct').addEventListener('change', (e) => {
+    currentPLIScheme = e.target.value;
+});
 
 window.closePLIResult = function() {
     document.getElementById('pliResultCard').classList.add('hidden');

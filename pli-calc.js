@@ -1,10 +1,10 @@
-/* pli-calc.js - Official Percentage Discount Logic */
+/* pli-calc.js - Universal Dak Sewa Logic */
 const PLI_Engine = {
     generateTable: (schemeCode, dobStr, sa, freqMode = 1) => {
         const data = PLI_DATA[schemeCode];
         if (!data) return { error: "Scheme data not found." };
 
-        // 1. Age Calculation (Next Birthday)
+        // 1. AGE LOGIC (Next Birthday)
         const dob = new Date(dobStr);
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
@@ -23,7 +23,7 @@ const PLI_Engine = {
                     let rateTable = data.rates[matAge];
                     let rate = rateTable ? rateTable[anb] : null;
 
-                    // Fallback for demo data gaps
+                    // Fallback for missing ages (Demo purposes)
                     if (!rate && rateTable) {
                         let keys = Object.keys(rateTable).map(Number);
                         if(keys.length > 0) {
@@ -33,40 +33,41 @@ const PLI_Engine = {
                     }
 
                     if (rate) {
-                        // 2. Base Monthly Premium
+                        // 1. BASE MONTHLY PREMIUM (Gross Rate)
+                        // Rate from pli-data.js is already Gross (includes rebate value)
                         let baseMonthly = (sa / 1000) * rate;
                         
-                        // 3. Frequency Calculation with DISCOUNTS [Source: Analysis]
-                        let freqPrem = 0;
+                        // 2. FREQUENCY MULTIPLIERS (The "Dak Sewa" Factors) 
+                        // These factors create the specific discounts seen in the app
+                        let multiplier = 1;
                         
-                        if (freqMode === 1) {
-                            freqPrem = baseMonthly;
-                        } else if (freqMode === 3) {
-                            // Quarterly: No Discount (x3)
-                            freqPrem = baseMonthly * 3;
+                        if (freqMode === 12) {
+                            multiplier = 11.64444444; // Yearly (Derived: 2096/180)
                         } else if (freqMode === 6) {
-                            // Half-Yearly: 1.5% Discount
-                            // Logic: Round( Monthly * 6 * 0.985 )
-                            freqPrem = Math.round(baseMonthly * 6 * 0.985);
-                        } else if (freqMode === 12) {
-                            // Yearly: 3% Discount
-                            // Logic: Round( Monthly * 12 * 0.97 )
-                            freqPrem = Math.round(baseMonthly * 12 * 0.97);
+                            multiplier = 5.91111111;  // Half-Yearly (Derived: 1064/180)
+                        } else if (freqMode === 3) {
+                            multiplier = 3.0;         // Quarterly (Derived: 540/180) - No discount
                         }
+                        // Monthly = 1.0
 
-                        // 4. Rebate Logic
-                        // Rule: ₹1 per ₹20k per MONTH. Total = MonthlyRebate * Freq.
+                        // Calculate Gross Premium for Frequency
+                        let freqPrem = Math.round(baseMonthly * multiplier);
+
+                        // 3. REBATE LOGIC
+                        // Rule: ₹1 per ₹20k per MONTH.
+                        // Dak Sewa multiplies the monthly rebate by the frequency (e.g. 12).
                         let rebatePerMonth = 0;
                         if (sa >= data.rebate_step) {
                             rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;
                         }
-                        let totalRebate = rebatePerMonth * freqMode;
+                        let totalRebate = rebatePerMonth * freqMode; 
 
-                        // 5. Net Premium
+                        // 4. NET PREMIUM (0% GST)
+                        // Net = Gross - Rebate
                         let netPrem = freqPrem - totalRebate;
                         if(netPrem < 0) netPrem = 0;
 
-                        // 6. Bonus
+                        // 5. BONUS CALCULATION
                         let totalBonus = (sa / 1000) * data.bonus_rate * term;
                         let maturityVal = sa + totalBonus;
 
@@ -83,6 +84,7 @@ const PLI_Engine = {
                 }
             });
         }
+
         return { anb: anb, rows: tableRows, sa: sa };
     }
 };

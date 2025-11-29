@@ -1,9 +1,10 @@
-/* pli-calc.js - Derived from User Screenshots (1L Table) */
+/* pli-calc.js - Official Percentage Discount Logic */
 const PLI_Engine = {
     generateTable: (schemeCode, dobStr, sa, freqMode = 1) => {
         const data = PLI_DATA[schemeCode];
         if (!data) return { error: "Scheme data not found." };
 
+        // 1. Age Calculation (Next Birthday)
         const dob = new Date(dobStr);
         const today = new Date();
         let age = today.getFullYear() - dob.getFullYear();
@@ -22,7 +23,7 @@ const PLI_Engine = {
                     let rateTable = data.rates[matAge];
                     let rate = rateTable ? rateTable[anb] : null;
 
-                    // Fallback
+                    // Fallback for demo data gaps
                     if (!rate && rateTable) {
                         let keys = Object.keys(rateTable).map(Number);
                         if(keys.length > 0) {
@@ -32,36 +33,40 @@ const PLI_Engine = {
                     }
 
                     if (rate) {
-                        // 1. BASE MONTHLY PREMIUM (Rate is per 1000)
+                        // 2. Base Monthly Premium
                         let baseMonthly = (sa / 1000) * rate;
                         
-                        /* --- EXACT MULTIPLIERS FROM YOUR SCREENSHOTS --- */
-                        // Yearly: 2096 / 180 = 11.64444
-                        // Half: 1064 / 180 = 5.91111
-                        // Quart: 540 / 180 = 3.0
+                        // 3. Frequency Calculation with DISCOUNTS [Source: Analysis]
+                        let freqPrem = 0;
                         
-                        let multiplier = 1;
-                        if (freqMode === 12) multiplier = 11.64444444; 
-                        else if (freqMode === 6) multiplier = 5.91111111;
-                        else if (freqMode === 3) multiplier = 3.0;
+                        if (freqMode === 1) {
+                            freqPrem = baseMonthly;
+                        } else if (freqMode === 3) {
+                            // Quarterly: No Discount (x3)
+                            freqPrem = baseMonthly * 3;
+                        } else if (freqMode === 6) {
+                            // Half-Yearly: 1.5% Discount
+                            // Logic: Round( Monthly * 6 * 0.985 )
+                            freqPrem = Math.round(baseMonthly * 6 * 0.985);
+                        } else if (freqMode === 12) {
+                            // Yearly: 3% Discount
+                            // Logic: Round( Monthly * 12 * 0.97 )
+                            freqPrem = Math.round(baseMonthly * 12 * 0.97);
+                        }
 
-                        // Calculate Frequency Premium & Round it
-                        let freqPrem = Math.round(baseMonthly * multiplier);
-
-                        /* --- REBATE LOGIC --- */
-                        // Rebate is ₹1 per ₹20k per MONTH.
-                        // Multiply monthly rebate by freqMode (e.g. 12 for yearly).
+                        // 4. Rebate Logic
+                        // Rule: ₹1 per ₹20k per MONTH. Total = MonthlyRebate * Freq.
                         let rebatePerMonth = 0;
                         if (sa >= data.rebate_step) {
                             rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;
                         }
                         let totalRebate = rebatePerMonth * freqMode;
 
-                        /* --- NET PREMIUM --- */
+                        // 5. Net Premium
                         let netPrem = freqPrem - totalRebate;
                         if(netPrem < 0) netPrem = 0;
 
-                        /* --- BONUS --- */
+                        // 6. Bonus
                         let totalBonus = (sa / 1000) * data.bonus_rate * term;
                         let maturityVal = sa + totalBonus;
 

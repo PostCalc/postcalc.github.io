@@ -15,52 +15,52 @@ const PLI_Engine = {
 
         let tableRows = [];
 
-        data.maturity_ages.forEach(matAge => {
-            let term = matAge - anb;
-            if (term >= 5) {
-                let rateTable = data.rates[matAge];
-                let rate = rateTable ? rateTable[anb] : null;
+        // Loop through all maturity ages
+        if(data.maturity_ages) {
+            data.maturity_ages.forEach(matAge => {
+                let term = matAge - anb;
+                if (term >= 5) {
+                    let rateTable = data.rates[matAge];
+                    let rate = rateTable ? rateTable[anb] : null;
 
-                // Fallback Logic
-                if (!rate && rateTable) {
-                    let keys = Object.keys(rateTable).map(Number);
-                    if(keys.length > 0) {
-                        let closest = keys.reduce((prev, curr) => Math.abs(curr - anb) < Math.abs(prev - anb) ? curr : prev);
-                        rate = rateTable[closest];
+                    // Fallback Logic
+                    if (!rate && rateTable) {
+                        let keys = Object.keys(rateTable).map(Number);
+                        if(keys.length > 0) {
+                            let closest = keys.reduce((prev, curr) => Math.abs(curr - anb) < Math.abs(prev - anb) ? curr : prev);
+                            rate = rateTable[closest];
+                        }
+                    }
+
+                    if (rate) {
+                        let basePrem = (sa / 1000) * rate;
+                        let freqPrem = basePrem * freqMode;
+
+                        let rebatePerMonth = 0;
+                        if (sa >= data.rebate_step) {
+                            rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;
+                        }
+                        let totalRebate = rebatePerMonth * freqMode;
+
+                        let netPrem = freqPrem - totalRebate;
+                        if(netPrem < 0) netPrem = 0;
+
+                        let totalBonus = (sa / 1000) * data.bonus_rate * term;
+                        let maturityVal = sa + totalBonus;
+
+                        tableRows.push({
+                            matAge: matAge,
+                            term: term,
+                            base: freqPrem,
+                            rebate: totalRebate,
+                            net: netPrem,
+                            bonus: totalBonus,
+                            maturity: maturityVal
+                        });
                     }
                 }
-
-                if (rate) {
-                    let basePrem = (sa / 1000) * rate;
-                    
-                    // Frequency Calculation (Base * Frequency)
-                    let freqPrem = basePrem * freqMode;
-
-                    // Rebate Logic: ₹1 per ₹20k per MONTH (Scaled by Frequency)
-                    let rebatePerMonth = 0;
-                    if (sa >= data.rebate_step) {
-                        rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;
-                    }
-                    let totalRebate = rebatePerMonth * freqMode;
-
-                    let netPrem = freqPrem - totalRebate;
-                    if(netPrem < 0) netPrem = 0;
-
-                    let totalBonus = (sa / 1000) * data.bonus_rate * term;
-                    let maturityVal = sa + totalBonus;
-
-                    tableRows.push({
-                        matAge: matAge,
-                        term: term,
-                        base: freqPrem,
-                        rebate: totalRebate,
-                        net: netPrem,
-                        bonus: totalBonus,
-                        maturity: maturityVal
-                    });
-                }
-            }
-        });
+            });
+        }
 
         return { anb: anb, rows: tableRows, sa: sa };
     }

@@ -55,35 +55,35 @@
             </div>
 
             <div id="section-insurance" class="card input-section hidden">
-                <h3 style="border:none; margin-bottom:15px; color:#333;">Postal Life Insurance</h3>
-                
-                <div class="pli-toggle-wrapper">
-                    <div class="pli-opt active" onclick="setPLIType('pli-ea')">PLI</div>
-                    <div class="pli-opt" onclick="setPLIType('rpli-ea')">RPLI</div>
-                </div>
+    <h3 style="border:none; margin-bottom:15px; color:#333;">Postal Life Insurance</h3>
+    
+    <div class="pli-toggle-wrapper">
+        <div class="pli-opt active" onclick="setPLIType('pli-ea')">PLI</div>
+        <div class="pli-opt" onclick="setPLIType('rpli-ea')">RPLI</div>
+    </div>
 
-                <div class="android-input-box">
-    <label>Select Plan</label>
-    <select id="pliProduct" style="border:none; padding:0; font-weight:600; width:100%; background:white;">
-        <option value="ea">Santosh (Endowment)</option>
-        <option value="wla">Suraksha (Whole Life)</option>
-    </select>
-                </div>
+    <div class="android-input-box">
+        <label>Select Plan</label>
+        <select id="pliProduct">
+            <option value="pli-ea">Santosh (Endowment)</option>
+            <option value="pli-wla">Suraksha (Whole Life)</option>
+        </select>
+    </div>
 
-                <label style="margin-top:15px;">Insurant DOB <span style="color:red">*</span></label>
-                <div class="input-with-icon">
-                    <input type="date" id="pliDOB">
-                    <span class="icon">📅</span>
-                </div>
+    <label style="margin-top:15px;">Insurant DOB <span style="color:red">*</span></label>
+    <div class="input-with-icon">
+        <input type="date" id="pliDOB">
+        <span class="icon">📅</span>
+    </div>
 
-                <label style="margin-top:15px;">Sum Assured (₹)</label>
-                <div class="input-with-icon">
-                    <input type="number" id="pliSumAssured" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
-                </div>
-                <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
-                
-                <button class="btn btn-calc" id="btnCalcPLI" style="margin-top:25px; border-radius:30px;">GET QUOTE</button>
-            </div>
+    <label style="margin-top:15px;">Sum Assured (₹)</label>
+    <div class="input-with-icon">
+        <input type="number" id="pliSumAssured" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
+    </div>
+    <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
+    
+    <button class="btn btn-calc" id="btnCalcPLI" style="margin-top:25px; border-radius:30px;">GET QUOTE</button>
+        </div>
 
             <div id="pliResultCard" class="card hidden">
                 <div class="statement-header">

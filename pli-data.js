@@ -5,9 +5,10 @@ const PLI_DATA = {
     // === 1. PLI - SANTOSH (Endowment Assurance) ===
     'pli-ea': {
         name: "PLI - Santosh (Endowment)",
-        bonus_rate: 52, // ₹52 per ₹1000
+        bonus_rate: 52, 
         rebate_step: 20000,
         rebate_val: 1,
+        // Critical for Table Generation
         maturity_ages: [35, 40, 45, 50, 55, 58, 60],
         rates: {
             35: { 19: 5.15, 20: 5.35, 25: 8.35, 30: 17.15 },
@@ -35,7 +36,7 @@ const PLI_DATA = {
     // === 3. RPLI - GRAM SANTOSH (Endowment) ===
     'rpli-ea': {
         name: "RPLI - Gram Santosh",
-        bonus_rate: 48, // ₹48 per ₹1000
+        bonus_rate: 48, 
         rebate_step: 20000,
         rebate_val: 1,
         maturity_ages: [35, 40, 45, 50, 55, 58, 60],

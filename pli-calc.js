@@ -25,7 +25,7 @@ const PLI_Engine = {
                     let rateTable = data.rates[matAge];
                     let rate = rateTable ? rateTable[anb] : null;
 
-                    // Fallback
+                    // Fallback logic
                     if (!rate && rateTable) {
                         let keys = Object.keys(rateTable).map(Number);
                         if(keys.length > 0) {
@@ -39,21 +39,21 @@ const PLI_Engine = {
                         let baseMonthly = (sa / 1000) * rate;
                         
                         /* --- EXACT DAK SEWA MULTIPLIERS --- */
-                        // Updated to match the 10 Lakh / Age 20 scenario perfectly.
+                        // Derived from your screenshots
                         let multiplier = 1;
-                        
                         if (freqMode === 12) {
-                            multiplier = 11.645; // Fixes the 46,578 -> 46,580 issue
+                            multiplier = 11.645; // Yearly (Fixes Base Premium)
                         } else if (freqMode === 6) {
-                            multiplier = 5.914;  // Standard Half-Yearly Factor
+                            multiplier = 5.914;  // Half-Yearly
                         } else if (freqMode === 3) {
-                            multiplier = 2.996;  // Standard Quarterly Factor
+                            multiplier = 2.996;  // Quarterly
                         }
 
+                        // Calculate Yearly/Half-Yearly Base Premium
                         let freqPrem = Math.round(baseMonthly * multiplier);
 
                         // 3. REBATE LOGIC
-                        // Rule: ₹1 per ₹20k per MONTH.
+                        // Rule: ₹1 per ₹20k per MONTH. Multiplied by frequency.
                         let rebatePerMonth = 0;
                         if (sa >= data.rebate_step) {
                             rebatePerMonth = Math.floor(sa / data.rebate_step) * data.rebate_val;

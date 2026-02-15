@@ -1,8 +1,7 @@
 /* =========================================
-   PART 1: CONFIGURATION, RULES & ENGINES
+   PART 1: CONFIGURATION & RULES
    ========================================= */
 
-/* --- 1. SCHEME DATA --- */
 const SCHEMES = {
     'sb': { name: "Savings Account", rate: 4.0, min: 500, tenure: 1 },
     'rd': { name: "Recurring Deposit", rate: 6.7, min: 100, tenure: 5 },
@@ -15,7 +14,6 @@ const SCHEMES = {
     'td': { name: "Time Deposit", rate: 7.5, rates: {1:6.9, 2:7.0, 3:7.1, 5:7.5}, min: 1000, tenure: 5 }
 };
 
-/* --- 2. RICH INFO CONTENT (Restored Full Details) --- */
 const SCHEME_RULES = {
     'sb': `
         <div class="info-section-title">Overview</div>
@@ -216,7 +214,6 @@ const SCHEME_RULES = {
         </table>`
 };
 
-/* --- 3. NUMBER TO WORDS UTILITY --- */
 function numToWord(val, divId) {
     const div = document.getElementById(divId); if (!div) return;
     let n = parseInt(val);
@@ -238,8 +235,10 @@ function numToWord(val, divId) {
     if (n > 0) { str += convert(n); }
     div.innerText = str + " Rupees Only";
 }
+/* =========================================
+   PART 2: MATH ENGINES
+   ========================================= */
 
-/* --- 4. MATH ENGINES (Standard) --- */
 const Engines = {
     calcSB: (p, r, d) => {
         let yrs = parseInt(document.getElementById('sbTenure').value) || 1;
@@ -308,35 +307,29 @@ const Engines = {
     }
 };
 /* =========================================
-   PART 2: UI CONTROLLER, CALCULATOR & EXPORT
+   PART 3: UI CONTROLLER & RENDER LOGIC
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auto-set Date
     const d = new Date();
     if(document.getElementById('dateOpen')) document.getElementById('dateOpen').valueAsDate = d;
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
 
-    // 2. Event Listeners
     document.getElementById('schemeSelector').addEventListener('change', (e) => { 
         toggleInputs(); 
         updateInfoContent(e.target.value); 
     });
     
     document.getElementById('btnCalculate').addEventListener('click', handleCalculate);
-    
-    // Info Modal Listeners
     document.getElementById('btnInfo').addEventListener('click', openModal);
     document.getElementById('closeInfo').addEventListener('click', closeModal);
     document.getElementById('infoModal').addEventListener('click', (e) => { 
         if(e.target.id === 'infoModal') closeModal(); 
     });
     
-    // Share Button Listener
     document.getElementById('btnShare').addEventListener('click', captureAndShare);
 });
 
-/* --- UI HELPERS --- */
 function openModal() { 
     const s = document.getElementById('schemeSelector').value; 
     updateInfoContent(s); 
@@ -349,7 +342,6 @@ function closeModal() {
 
 function updateInfoContent(scheme) {
     const container = document.getElementById('ruleContent');
-    // Loads the rich HTML content from Part 1
     container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>";
 }
 
@@ -357,18 +349,14 @@ function toggleInputs() {
     const s = document.getElementById('schemeSelector').value; 
     if (!s) return;
     
-    // Hide all first
     document.querySelectorAll('.input-group').forEach(el => el.classList.add('hidden'));
     document.getElementById('resultsCard').classList.add('hidden');
     
-    // Show Input Card & Info Button
     document.getElementById('inputCard').classList.remove('hidden');
     document.getElementById('btnInfo').classList.remove('hidden');
 
-    // Update Print Header Name
     if(SCHEMES[s]) document.getElementById('printSchemeName').innerText = SCHEMES[s].name;
     
-    // Show Specific Inputs
     if (s === 'ssa') unhide('input-ssa'); 
     else if (s === 'ppf') unhide('input-ppf'); 
     else if (s === 'td') unhide('input-td'); 
@@ -377,7 +365,6 @@ function toggleInputs() {
 
 function unhide(id) { document.getElementById(id).classList.remove('hidden'); }
 
-/* --- MODE TOGGLES (SSA, PPF, MIS) --- */
 function setSSAMode(mode) {
     document.querySelectorAll('#input-ssa .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
@@ -410,7 +397,6 @@ function setMISMode(type) {
     document.getElementById('input-mis').dataset.type = type;
 }
 
-/* --- MAIN CALCULATOR HANDLER --- */
 function handleCalculate() {
     const s = document.getElementById('schemeSelector').value;
     const dStr = document.getElementById('dateOpen').value;
@@ -419,9 +405,8 @@ function handleCalculate() {
     
     hideWarn(); 
     let p = 0; 
-    let mode = 'annual'; // Default for PPF/SSA
+    let mode = 'annual';
 
-    // 1. GET PRINCIPAL AMOUNT BASED ON SCHEME
     if (s === 'ssa') {
         mode = document.getElementById('input-ssa').dataset.mode || 'annual';
         p = (mode === 'annual') ? getVal('ssaDepositAnnual') : getVal('ssaDepositMonthly');
@@ -441,16 +426,13 @@ function handleCalculate() {
         if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
     }
     else { 
-        // Generic fallback (SB, RD, SCSS, NSC, KVP)
         let id = s + 'Deposit';
         p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
     }
 
-    // 2. VALIDATION
     if (p < conf.min) return showWarn(`Minimum deposit is ₹${conf.min}`);
     if (s !== 'mis' && conf.max && p > conf.max) return showWarn(`Maximum limit is ₹${conf.max}`);
 
-    // 3. EXECUTE MATH ENGINE
     let res = null;
     
     if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
@@ -469,7 +451,6 @@ function handleCalculate() {
     renderSimple(res);
 }
 
-/* --- RENDER RESULTS --- */
 function renderSimple(data) {
     document.getElementById('resTotalDep').innerText = fmt(data.dep);
     document.getElementById('resTotalInt').innerText = fmt(data.int);
@@ -479,7 +460,6 @@ function renderSimple(data) {
         document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
-    // Handle Payout Label (Monthly/Yearly/Quarterly)
     if (data.payout) {
         document.getElementById('rowPayout').classList.remove('hidden');
         document.getElementById('resPayout').innerText = fmt(data.payout) + (data.freq || '');
@@ -487,7 +467,6 @@ function renderSimple(data) {
         document.getElementById('rowPayout').classList.add('hidden');
     }
 
-    // Generate Table Header
     const head = document.getElementById('resHead');
     if (data.type === 'payout') {
         head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`;
@@ -495,7 +474,6 @@ function renderSimple(data) {
         head.innerHTML = `<tr><th>Period</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
     }
 
-    // Generate Table Rows
     document.getElementById('resBody').innerHTML = data.rows.map(r => {
         if(data.type === 'payout') {
             return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
@@ -503,30 +481,24 @@ function renderSimple(data) {
         return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
     }).join('');
 
-    // Show Card & Scroll
     document.getElementById('resultsCard').classList.remove('hidden');
     document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
 }
 
-/* --- 🚀 SMART SHARE & SAVE LOGIC (Virtual A4) --- */
 function captureAndShare() {
     const btn = document.getElementById('btnShare');
     const originalText = btn.innerText;
     
-    // 1. UI Feedback
     btn.innerText = "⏳ Processing..."; 
     btn.disabled = true;
 
-    // 2. Create Virtual A4 Page (To ensure perfect layout & table visibility)
     const source = document.getElementById('resultsCard');
     const clone = source.cloneNode(true);
     
-    // Hide buttons in the image
     if(clone.querySelector('.download-actions')) {
         clone.querySelector('.download-actions').style.display = 'none';
     }
 
-    // Set A4 Dimensions (Standard 794px width @ 96 DPI)
     clone.style.width = '794px'; 
     clone.style.minHeight = '1123px';
     clone.style.padding = '40px';
@@ -534,9 +506,8 @@ function captureAndShare() {
     clone.style.position = 'fixed'; 
     clone.style.top = '0'; 
     clone.style.left = '0';
-    clone.style.zIndex = '-100'; // Hide behind app
+    clone.style.zIndex = '-100';
     
-    // FORCE TABLE EXPANSION (Fixes 'Cut-off' issue)
     const tableWrap = clone.querySelector('.table-wrapper');
     if(tableWrap) { 
         tableWrap.style.overflow = 'visible'; 
@@ -545,25 +516,22 @@ function captureAndShare() {
     const table = clone.querySelector('table');
     if(table) table.style.width = '100%';
     
-    // 🔥 CRITICAL FIX: PREVENT WRAPPING IN COLUMNS (For SSA/PPF Dates)
     clone.querySelectorAll('th, td').forEach(cell => {
         cell.style.whiteSpace = 'nowrap';
     });
 
     document.body.appendChild(clone);
 
-    // 3. Capture
     html2canvas(clone, { 
         scale: 2, 
         useCORS: true, 
-        scrollY: -window.scrollY // Fixes scroll offset bugs
+        scrollY: -window.scrollY 
     }).then(async canvas => {
-        document.body.removeChild(clone); // Cleanup
+        document.body.removeChild(clone); 
         
         canvas.toBlob(async (blob) => {
             const file = new File([blob], "PostCalc-Report.png", { type: "image/png" });
 
-            // 4. Try Native Mobile Share
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -573,7 +541,6 @@ function captureAndShare() {
                     });
                 } catch (err) { console.log("Share cancelled", err); }
             } else {
-                // 5. Desktop Fallback (Auto-Download)
                 const link = document.createElement('a');
                 link.download = 'PostCalc-Report.png';
                 link.href = URL.createObjectURL(blob);
@@ -591,7 +558,6 @@ function captureAndShare() {
     });
 }
 
-/* --- HELPERS --- */
 function getVal(id) { 
     const el = document.getElementById(id); 
     return el ? (parseFloat(el.value)||0) : 0; 
@@ -609,206 +575,4 @@ function showWarn(m) {
 
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
-           }
-/* =========================================
-   PART 3: PLI / RPLI CONTROLLER (ADD THIS TO BOTTOM)
-   ========================================= */
-
-// Global Variables for Insurance
-var currentPLIScheme = 'pli-ea'; 
-var currentPLIData = null; 
-
-/* --- 1. TAB SWITCHER (Savings vs Insurance) --- */
-window.switchTab = function(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-
-    if (tab === 'savings') {
-        document.getElementById('section-savings').classList.remove('hidden');
-        document.getElementById('section-insurance').classList.add('hidden');
-        
-        // Hide PLI Result, Reset Savings Inputs
-        document.getElementById('pliResultCard').classList.add('hidden'); 
-        document.getElementById('inputCard').classList.add('hidden'); 
-        document.getElementById('resultsCard').classList.add('hidden'); 
-        if(document.getElementById('schemeSelector')) document.getElementById('schemeSelector').value = "";
-    } else {
-        document.getElementById('section-savings').classList.add('hidden');
-        document.getElementById('section-insurance').classList.remove('hidden');
-        
-        // Hide Savings Inputs
-        document.getElementById('inputCard').classList.add('hidden');
-        document.getElementById('resultsCard').classList.add('hidden');
-    }
-};
-
-/* --- 2. PLI TOGGLE (Fixed Dropdown Logic) --- */
-window.setPLIType = function(type) {
-    let isRPLI = type.includes('rpli');
-    
-    // Update Pill Buttons
-    document.querySelectorAll('.pli-opt').forEach(el => el.classList.remove('active'));
-    let activeBtn = isRPLI ? document.querySelectorAll('.pli-opt')[1] : document.querySelectorAll('.pli-opt')[0];
-    if(activeBtn) activeBtn.classList.add('active');
-
-    // Update Dropdown Options Dynamically
-    const select = document.getElementById('pliProduct');
-    if(select) {
-        if(isRPLI) {
-            select.innerHTML = `
-                <option value="rpli-ea">Gram Santosh (Endowment)</option>
-                <option value="rpli-wla">Gram Suraksha (Whole Life)</option>
-            `;
-            currentPLIScheme = 'rpli-ea';
-        } else {
-            select.innerHTML = `
-                <option value="pli-ea">Santosh (Endowment)</option>
-                <option value="pli-wla">Suraksha (Whole Life)</option>
-            `;
-            currentPLIScheme = 'pli-ea';
-        }
-    }
-};
-
-/* --- 3. RESULTS & FREQUENCY --- */
-window.closePLIResult = function() {
-    document.getElementById('pliResultCard').classList.add('hidden');
-    document.getElementById('section-insurance').classList.remove('hidden');
-};
-
-window.updateFreq = function(freq) {
-    if(!currentPLIData) return;
-    
-    // Update Tab UI
-    document.querySelectorAll('.f-tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    // Re-Calculate Table
-    if(typeof PLI_Engine !== 'undefined') {
-        const result = PLI_Engine.generateTable(currentPLIScheme, currentPLIData.dob, currentPLIData.sa, freq);
-        renderPLITable(result.rows);
-    }
-};
-
-function renderPLITable(rows) {
-    const tbody = document.getElementById('pliTableBody');
-    if(!tbody) return;
-    
-    if(rows.length === 0) { 
-        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px;'>No eligible plans found.</td></tr>"; 
-        return; 
-    }
-    
-    const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
-    
-    tbody.innerHTML = rows.map(r => `
-        <tr>
-            <td style="text-align:center; font-weight:600;">${r.matAge}</td>
-            <td style="text-align:center;">${r.term} Yrs</td>
-            <td>${fmt(r.base)}</td>
-            <td>${fmt(r.rebate)}</td>
-            <td style="font-weight:700; color:#d62828; background:#fff8f8;">${fmt(r.net)}</td>
-            <td>${fmt(r.bonus)}</td>
-            <td>${fmt(r.maturity)}</td>
-        </tr>
-    `).join('');
 }
-
-/* --- 4. EVENT LISTENERS (For PLI) --- */
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // PLI Product Dropdown Change
-    const pliSelect = document.getElementById('pliProduct');
-    if(pliSelect) {
-        pliSelect.addEventListener('change', (e) => { currentPLIScheme = e.target.value; });
-    }
-
-    // GET QUOTE Button
-    const btnPLI = document.getElementById('btnCalcPLI');
-    if(btnPLI) {
-        btnPLI.addEventListener('click', () => {
-            const dob = document.getElementById('pliDOB').value;
-            const sa = parseFloat(document.getElementById('pliSumAssured').value);
-            
-            if(!dob) { alert("Please select Date of Birth"); return; }
-            if(!sa || sa < 20000) { alert("Minimum Sum Assured is ₹20,000"); return; }
-            
-            if(typeof PLI_Engine === 'undefined') { alert("Engine not loaded. Check pli-calc.js"); return; }
-            
-            // Calculate (Default Monthly)
-            const result = PLI_Engine.generateTable(currentPLIScheme, dob, sa, 1);
-            if(result.error) { alert(result.error); return; }
-            
-            // Store & Render
-            currentPLIData = { dob, sa, rawResult: result };
-            if(document.getElementById('resAnb')) document.getElementById('resAnb').innerText = result.anb + " Years";
-            renderPLITable(result.rows);
-            
-            // Switch View
-            document.getElementById('section-insurance').classList.add('hidden');
-            document.getElementById('pliResultCard').classList.remove('hidden');
-        });
-    }
-});
-
-/* --- 5. SMART SHARE FUNCTION (Updates existing one) --- */
-window.captureAndShare = function() {
-    // Detect which card is visible
-    const isPLI = !document.getElementById('pliResultCard').classList.contains('hidden');
-    const sourceId = isPLI ? 'pliResultCard' : 'resultsCard';
-    const source = document.getElementById(sourceId);
-    
-    // Find the active button
-    let btn = isPLI ? document.querySelector('#pliResultCard .btn-calc') : document.getElementById('btnShare');
-    // Fallback search if button inside card not found
-    if(!btn && isPLI) btn = document.querySelector('button[onclick="captureAndShare()"]');
-    
-    if(!btn) return;
-    
-    const originalText = btn.innerText;
-    btn.innerText = "⏳ Processing..."; 
-    btn.disabled = true;
-
-    // Clone for Capture
-    const clone = source.cloneNode(true);
-    
-    // Clean up clone (Hide buttons)
-    const actions = clone.querySelector('.download-actions') || clone.querySelector('div[style*="text-align:center"]');
-    if(actions) actions.style.display = 'none';
-    const closeBtn = clone.querySelector('button[onclick*="closePLIResult()"]') || clone.querySelector('button[onclick*="close"]');
-    if(closeBtn) closeBtn.style.display = 'none';
-
-    // Set A4 Style
-    clone.style.width = '794px'; 
-    clone.style.padding = '40px';
-    clone.style.background = 'white';
-    clone.style.position = 'fixed'; 
-    clone.style.top = '0'; 
-    clone.style.zIndex = '-100'; 
-    
-    // Fix Tables
-    const tableWrap = clone.querySelector('.table-wrapper');
-    if(tableWrap) { tableWrap.style.overflow = 'visible'; tableWrap.style.border = 'none'; }
-    const table = clone.querySelector('table');
-    if(table) table.style.width = '100%';
-    clone.querySelectorAll('th, td').forEach(cell => { cell.style.whiteSpace = 'normal'; });
-
-    document.body.appendChild(clone);
-
-    // Capture
-    html2canvas(clone, { scale: 2, useCORS: true, scrollY: -window.scrollY }).then(async canvas => {
-        document.body.removeChild(clone);
-        canvas.toBlob(async (blob) => {
-            const fileName = isPLI ? "PostCalc-Insurance-Quote.png" : "PostCalc-Savings-Report.png";
-            const file = new File([blob], fileName, { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share({ files: [file] }); } catch (err) {}
-            } else {
-                const link = document.createElement('a');
-                link.download = fileName; link.href = URL.createObjectURL(blob); link.click();
-            }
-            btn.innerText = originalText; btn.disabled = false;
-        });
-    });
-};

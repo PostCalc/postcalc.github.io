@@ -62,7 +62,6 @@ select:focus, input:focus { outline: none; border-color: var(--primary); box-sha
 .toggle-row { display: flex; background: #eee; border-radius: 8px; padding: 4px; margin-bottom: 15px; }
 .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #666; transition: 0.2s; }
 .toggle-btn.active { background: var(--primary); color: white; font-weight: 600; }
-
 /* STATEMENT CARD */
 .statement-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
 .st-left h2 { margin: 0; color: var(--primary); font-size: 1.4rem; text-transform: uppercase; line-height: 1; }

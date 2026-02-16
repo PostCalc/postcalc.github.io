@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PostCalc - India Post Savings</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -24,24 +24,10 @@
 
         <div class="container">
             <div class="card input-section">
-            
-
-            <div class="card hidden" id="inputCard">
-                <h3>Enter Details</h3>
-                <div style="margin-bottom: 20px;">
-                    <label>Date of Opening / First Deposit</label>
-                    <input type="date" id="dateOpen">
-                    <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest deadlines)</small>
-                </div>
-
-                <form id="calcForm">
-                    <div id="input-sb" class="input-group hidden">
-                        <label>Minimum Monthly Balance (₹)</label>
-                        <input type="number" id="sbDeposit" value="5000" on<div class="card input-section">
                 <h3>Select Scheme</h3>
                 
                 <select id="schemeSelector" style="display: none;">
-                    <option value="">♦ Choose Saving Scheme ♦ </option>
+                    <option value="">-- Choose Saving Scheme --</option>
                     <option value="sb">SB - Savings Account</option>
                     <option value="rd">RD - Recurring Deposit</option>
                     <option value="ssa">SSA - Sukanya Samriddhi Account</option>
@@ -74,8 +60,20 @@
                 <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
                     <span>ℹ️ View Scheme Details</span>
                 </button>
-                    </div>
-                    input="numToWord(this.value, 'word-sb')">
+            </div>
+
+            <div class="card hidden" id="inputCard">
+                <h3>Enter Details</h3>
+                <div style="margin-bottom: 20px;">
+                    <label>Date of Opening / First Deposit</label>
+                    <input type="date" id="dateOpen">
+                    <small style="color:#64748B; font-size: 0.75rem;">(Used to calculate interest deadlines)</small>
+                </div>
+
+                <form id="calcForm">
+                    <div id="input-sb" class="input-group hidden">
+                        <label>Minimum Monthly Balance (₹)</label>
+                        <input type="number" id="sbDeposit" value="5000" oninput="numToWord(this.value, 'word-sb')">
                         <div id="word-sb" class="word-display">Five Thousand Rupees Only</div>
                         <label>Duration (Years)</label><input type="number" id="sbTenure" value="1">
                     </div>
@@ -105,6 +103,7 @@
                             <div id="word-ssa-m" class="word-display">Two Thousand Rupees Only</div>
                         </div>
                     </div>
+
                     <div id="input-ppf" class="input-group hidden" data-mode="annual">
                         <label>Deposit Frequency</label>
                         <div class="toggle-row">
@@ -128,7 +127,7 @@
                         <input type="number" id="tdDeposit" value="100000" oninput="numToWord(this.value, 'word-td')">
                         <div id="word-td" class="word-display">One Lakh Rupees Only</div>
                         <label>Tenure</label>
-                        <select id="tdTenure">
+                        <select id="tdTenure" class="native-select">
                             <option value="1">1 Year (6.9%)</option>
                             <option value="2">2 Years (7.0%)</option>
                             <option value="3">3 Years (7.1%)</option>
@@ -181,28 +180,12 @@
                     </div>
                 </div>
 
-                <h3 class="res-title">Summary</h3>
                 <div class="summary">
-                    <div class="summary-item">
-                        <span class="lbl">Total Deposit</span>
-                        <span class="val" id="resTotalDep">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="lbl">Total Interest</span>
-                        <span class="val highlight" id="resTotalInt">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="lbl">Maturity Amount</span>
-                        <span class="val" id="resMaturity">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="lbl">Maturity Date</span>
-                        <span class="val" id="resMatDate">-</span>
-                    </div>
-                    <div class="summary-item hidden" id="rowPayout">
-                        <span class="lbl">Regular Payout</span>
-                        <span class="val" id="resPayout">-</span>
-                    </div>
+                    <div class="summary-item"><span class="lbl">Total Deposit</span><span class="val" id="resTotalDep">-</span></div>
+                    <div class="summary-item"><span class="lbl">Total Interest</span><span class="val highlight" id="resTotalInt">-</span></div>
+                    <div class="summary-item"><span class="lbl">Maturity Amount</span><span class="val" id="resMaturity">-</span></div>
+                    <div class="summary-item"><span class="lbl">Maturity Date</span><span class="val" id="resMatDate">-</span></div>
+                    <div class="summary-item hidden" id="rowPayout"><span class="lbl">Regular Payout</span><span class="val" id="resPayout">-</span></div>
                 </div>
 
                 <div class="table-wrapper">
@@ -212,16 +195,12 @@
                     </table>
                 </div>
 
-                <p id="disclaimer">
-                    * Interest calculated based on official Department of Posts rules (5th/10th day logic applies). Actual results may vary.
-                </p>
+                <p id="disclaimer">* Calculated based on official Department of Posts rules. Actual results may vary.</p>
                 
                 <div class="footer-brand">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
 
                 <div class="download-actions">
-                    <button class="btn btn-download btn-share" id="btnShare">
-                        🚀 Share / Save Report
-                    </button>
+                    <button class="btn btn-download btn-share" id="btnShare">🚀 Share / Save Report</button>
                 </div>
             </div>
         </div>
@@ -234,9 +213,7 @@
                     <h3>Scheme Details</h3>
                     <button class="modal-close" id="closeInfo">×</button>
                 </div>
-                <div class="modal-body">
-                    <div id="ruleContent" class="rule-content"></div>
-                </div>
+                <div class="modal-body"><div id="ruleContent" class="rule-content"></div></div>
             </div>
         </div>
     </div>

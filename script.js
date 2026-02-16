@@ -268,7 +268,7 @@ const Engines = {
         if (type === 'ppf') { let fyEndMonth = d.getMonth() > 2 ? d.getFullYear() + 1 : d.getFullYear(); matDate = new Date(fyEndMonth + 15, 2, 31); depEndDate = matDate; } 
         else { matDate.setFullYear(d.getFullYear() + 21); depEndDate = new Date(d); depEndDate.setFullYear(d.getFullYear() + 15); }
         let curr = new Date(d); curr.setDate(1); let yrData = { op: 0, dep: 0, int: 0, cl: 0 }; let accInt = 0; let openDay = d.getDate();
-        let yearsElapsed = 0; // Tracks age progression
+        let yearsElapsed = 0;
         while (curr < matDate) {
             let m = curr.getMonth(); let y = curr.getFullYear(); let monDep = 0;
             if (curr < depEndDate) {
@@ -291,7 +291,7 @@ const Engines = {
             }
             curr.setMonth(curr.getMonth() + 1);
         }
-        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: type }; // Outputs specific scheme type
+        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: type };
     },
     calcRD: (p, r, d) => {
         let rows = [], bal = 0, bucket = 0, totDep = 0; let yrOp = 0, yrDep = 0; let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5);
@@ -477,7 +477,6 @@ function renderSimple(data) {
     }
 
     const head = document.getElementById('resHead');
-    const head = document.getElementById('resHead');
     if (data.type === 'payout') {
         head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`;
     } else if (data.type === 'ssa') {
@@ -539,7 +538,7 @@ function captureAndShare() {
     document.body.appendChild(clone);
 
     html2canvas(clone, { 
-        scale: 3, 
+        scale: 4, 
         useCORS: true, 
         scrollY: -window.scrollY 
     }).then(async canvas => {

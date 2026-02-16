@@ -263,11 +263,12 @@ const Engines = {
         let freqLabel = (freq === 12) ? ' / month' : ' / quarter';
         return { dep: p, int: pay * freq * yrs, mat: p, payout: pay, date: matDate, rows: rows, type: 'payout', freq: freqLabel };
     },
-    calcPPF_SSA: (p, r, d, type, mode) => {
+    calcPPF_SSA: (p, r, d, type, mode, startAge = 0) => {
         let bal = 0, totDep = 0; let rows = []; let matDate = new Date(d); let depEndDate = new Date(d);
         if (type === 'ppf') { let fyEndMonth = d.getMonth() > 2 ? d.getFullYear() + 1 : d.getFullYear(); matDate = new Date(fyEndMonth + 15, 2, 31); depEndDate = matDate; } 
         else { matDate.setFullYear(d.getFullYear() + 21); depEndDate = new Date(d); depEndDate.setFullYear(d.getFullYear() + 15); }
         let curr = new Date(d); curr.setDate(1); let yrData = { op: 0, dep: 0, int: 0, cl: 0 }; let accInt = 0; let openDay = d.getDate();
+        let yearsElapsed = 0; // Tracks age progression
         while (curr < matDate) {
             let m = curr.getMonth(); let y = curr.getFullYear(); let monDep = 0;
             if (curr < depEndDate) {
@@ -280,12 +281,17 @@ const Engines = {
             let int = (qualifyingBal * r) / 1200; accInt += int;
             if (m === 2 || (curr.getTime() + 2600000000 > matDate.getTime())) {
                 let credit = Math.round(accInt); bal += credit; yrData.int = credit; yrData.cl = bal; 
-                if (yrData.dep > 0 || yrData.int > 0) rows.push({ lbl: `FY ${y}-${y+1}`, op: yrData.op, dep: yrData.dep, int: yrData.int, cl: yrData.cl });
+                if (yrData.dep > 0 || yrData.int > 0) {
+                    let fyStart = m <= 2 ? y - 1 : y; 
+                    let fyEndStr = (fyStart + 1).toString().slice(-2);
+                    rows.push({ lbl: `${fyStart}-${fyEndStr}`, age: startAge + yearsElapsed, op: yrData.op, dep: yrData.dep, int: yrData.int, cl: yrData.cl });
+                    yearsElapsed++;
+                }
                 yrData = { op: bal, dep: 0, int: 0, cl: 0 }; accInt = 0;
             }
             curr.setMonth(curr.getMonth() + 1);
         }
-        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: 'compound' };
+        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: type }; // Outputs specific scheme type
     },
     calcRD: (p, r, d) => {
         let rows = [], bal = 0, bucket = 0, totDep = 0; let yrOp = 0, yrDep = 0; let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5);

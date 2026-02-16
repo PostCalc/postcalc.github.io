@@ -321,10 +321,58 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('dateOpen')) document.getElementById('dateOpen').valueAsDate = d;
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
 
-    document.getElementById('schemeSelector').addEventListener('change', (e) => { 
+    const realSelector = document.getElementById('schemeSelector');
+    
+    // Listen for changes on the hidden real selector
+    realSelector.addEventListener('change', (e) => { 
         toggleInputs(); 
         updateInfoContent(e.target.value); 
     });
+    
+    // --- NEW CUSTOM DROPDOWN LOGIC ---
+    const header = document.getElementById('dropdownHeader');
+    const list = document.getElementById('dropdownList');
+    const items = list.querySelectorAll('li');
+    const headerText = header.querySelector('span');
+
+    header.addEventListener('click', () => {
+        list.classList.toggle('open');
+        header.classList.toggle('active');
+    });
+
+    items.forEach(item => {
+        item.addEventListener('click', () => {
+            // Update UI
+            headerText.innerHTML = item.innerHTML;
+            items.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            list.classList.remove('open');
+            header.classList.remove('active');
+
+            // Secretly update the real hidden select and trigger the math logic
+            realSelector.value = item.getAttribute('data-value');
+            realSelector.dispatchEvent(new Event('change'));
+        });
+    });
+
+    // Close dropdown if user clicks anywhere outside of it
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('customSchemeDropdown').contains(e.target)) {
+            list.classList.remove('open');
+            header.classList.remove('active');
+        }
+    });
+    // ---------------------------------
+
+    document.getElementById('btnCalculate').addEventListener('click', handleCalculate);
+    document.getElementById('btnInfo').addEventListener('click', openModal);
+    document.getElementById('closeInfo').addEventListener('click', closeModal);
+    document.getElementById('infoModal').addEventListener('click', (e) => { 
+        if(e.target.id === 'infoModal') closeModal(); 
+    });
+    
+    document.getElementById('btnShare').addEventListener('click', captureAndShare);
+});
     
     document.getElementById('btnCalculate').addEventListener('click', handleCalculate);
     document.getElementById('btnInfo').addEventListener('click', openModal);

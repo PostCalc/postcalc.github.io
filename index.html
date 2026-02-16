@@ -24,23 +24,7 @@
 
         <div class="container">
             <div class="card input-section">
-                <h3>Select Scheme</h3>
-                <select id="schemeSelector">
-                    <option value="">-- Choose Saving Scheme --</option>
-                    <option value="sb">SB - Savings Account</option>
-                    <option value="rd">RD - Recurring Deposit</option>
-                    <option value="ssa">SSA - Sukanya Samriddhi Account</option>
-                    <option value="td">TD - Time Deposit</option>
-                    <option value="mis">MIS - Monthly Income Scheme</option>
-                    <option value="ppf">PPF - Public Provident Fund</option>
-                    <option value="scss">SCSS - Senior Citizen Savings Scheme</option>
-                    <option value="kvp">KVP - Kisan Vikas Patra</option>
-                    <option value="nsc">NSC - National Savings Certificate</option>
-                </select>
-                <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
-                    <span>ℹ️ View Scheme Details</span>
-                </button>
-            </div>
+            
 
             <div class="card hidden" id="inputCard">
                 <h3>Enter Details</h3>
@@ -53,7 +37,45 @@
                 <form id="calcForm">
                     <div id="input-sb" class="input-group hidden">
                         <label>Minimum Monthly Balance (₹)</label>
-                        <input type="number" id="sbDeposit" value="5000" oninput="numToWord(this.value, 'word-sb')">
+                        <input type="number" id="sbDeposit" value="5000" on<div class="card input-section">
+                <h3>Select Scheme</h3>
+                
+                <select id="schemeSelector" style="display: none;">
+                    <option value="">♦ Choose Saving Scheme ♦ </option>
+                    <option value="sb">SB - Savings Account</option>
+                    <option value="rd">RD - Recurring Deposit</option>
+                    <option value="ssa">SSA - Sukanya Samriddhi Account</option>
+                    <option value="td">TD - Time Deposit</option>
+                    <option value="mis">MIS - Monthly Income Scheme</option>
+                    <option value="ppf">PPF - Public Provident Fund</option>
+                    <option value="scss">SCSS - Senior Citizen Savings Scheme</option>
+                    <option value="kvp">KVP - Kisan Vikas Patra</option>
+                    <option value="nsc">NSC - National Savings Certificate</option>
+                </select>
+
+                <div class="custom-dropdown" id="customSchemeDropdown">
+                    <div class="dropdown-header" id="dropdownHeader">
+                        <span>-- Choose Saving Scheme --</span>
+                        <div class="dropdown-arrow">▼</div>
+                    </div>
+                    <ul class="dropdown-list" id="dropdownList">
+                        <li data-value="sb"><span class="dd-icon">🏦</span> SB - Savings Account</li>
+                        <li data-value="rd"><span class="dd-icon">🔄</span> RD - Recurring Deposit</li>
+                        <li data-value="ssa"><span class="dd-icon">👧</span> SSA - Sukanya Samriddhi</li>
+                        <li data-value="td"><span class="dd-icon">⏳</span> TD - Time Deposit</li>
+                        <li data-value="mis"><span class="dd-icon">💸</span> MIS - Monthly Income</li>
+                        <li data-value="ppf"><span class="dd-icon">🛡️</span> PPF - Public Provident</li>
+                        <li data-value="scss"><span class="dd-icon">👴</span> SCSS - Senior Citizen</li>
+                        <li data-value="kvp"><span class="dd-icon">🌱</span> KVP - Kisan Vikas Patra</li>
+                        <li data-value="nsc"><span class="dd-icon">📜</span> NSC - National Savings Cert.</li>
+                    </ul>
+                </div>
+                
+                <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
+                    <span>ℹ️ View Scheme Details</span>
+                </button>
+                    </div>
+                    input="numToWord(this.value, 'word-sb')">
                         <div id="word-sb" class="word-display">Five Thousand Rupees Only</div>
                         <label>Duration (Years)</label><input type="number" id="sbTenure" value="1">
                     </div>

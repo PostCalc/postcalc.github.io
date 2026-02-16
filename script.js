@@ -1,5 +1,5 @@
 /* =========================================
-   PART 1: CONFIGURATION & MATH ENGINES
+   PART 1: CONFIGURATION & RULES
    ========================================= */
 
 const SCHEMES = {
@@ -15,25 +15,27 @@ const SCHEMES = {
 };
 
 const SCHEME_RULES = {
-    'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
-    'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Compounding</th><td>Quarterly</td></tr><tr><th>Min Deposit</th><td>₹100/month</td></tr></table>`,
-    'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years</td></tr><tr><th>Eligibility</th><td>Girl Child (< 10 Yrs)</td></tr><tr><th>Min Deposit</th><td>₹250/year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh/year</td></tr></table>`,
-    'ppf': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.1% per annum</td></tr><tr><th>Tenure</th><td>15 Years</td></tr><tr><th>Min Deposit</th><td>₹500/year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh/year</td></tr></table>`,
-    'mis': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.4% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Min Deposit</th><td>₹1000</td></tr><tr><th>Max Deposit</th><td>₹9L (Single)/₹15L (Joint)</td></tr></table>`,
-    'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Compounding</th><td>Quarterly (Paid Annually)</td></tr></table>`,
-    'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table>`,
-    'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Tax Benefit</th><td>80C Eligible</td></tr></table>`,
-    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months</td></tr><tr><th>Result</th><td>Amount Doubles</td></tr></table>`
+    'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual (Single/Joint)</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Annually)</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>10th & Last Day</b></td></tr><tr><th>Critical Rule</th><td>Deposit by the <b>10th</b> to earn interest for that month.</td></tr><tr><th>Penalty</th><td>₹50 deducted if balance < ₹500</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Exempt up to ₹10,000 (u/s 80TTA)</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
+    'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td><b>Quarterly Compounding</b></td></tr><tr><th>Calc Rule</th><td>Deposit by 15th (if opened 1st-15th) or Last Day</td></tr><tr><th>Trick / Hack</th><td>Pay 6-12 months in advance to earn a <b>Rebate</b>.</td></tr><tr><th>Penalty</th><td>₹1 per ₹100 for missed installment</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest is Taxable. No TDS.</td></tr><tr><th>Loan Facility</th><td>Available after 1 Year (50% of balance)</td></tr></table>`,
+    'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years (Deposit for 15 Yrs)</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10 Years)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Yearly Compounding</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>5th & Last Day</b></td></tr><tr><th>Critical Rule</th><td>Deposit by <b>5th</b> to earn interest for that month.</td></tr><tr><th>Penalty</th><td>₹50 per year for default</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td><b>EEE:</b> Exempt-Exempt-Exempt (Tax Free)</td></tr><tr><th>Loan Facility</th><td>No Loan. Partial withdrawal after age 18.</td></tr></table>`,
+    'ppf': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.1% per annum</td></tr><tr><th>Tenure</th><td>15 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Yearly Compounding</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>5th & Last Day</b></td></tr><tr><th>Trick / Hack</th><td>Deposit lumpsum by <b>April 5th</b> for max return.</td></tr><tr><th>Penalty</th><td>₹50 per year for default</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td><b>EEE:</b> Completely Tax Free (80C)</td></tr><tr><th>Loan Facility</th><td>Available from 3rd to 6th Financial Year</td></tr></table>`,
+    'mis': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.4% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹9L (Single) / ₹15L (Joint)</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Monthly)</td></tr><tr><th>Pay Details</th><td>Auto-credit to Savings Account</td></tr><tr><th>Trick / Hack</th><td>Link to SB to earn 4% on idle interest.</td></tr><tr><th>Penalty</th><td>2% (1-3 yrs), 1% (3-5 yrs) on closure.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest is Taxable.</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
+    'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td><b>Quarterly</b></td></tr><tr><th>Pay Details</th><td>Calculated quarterly, <b>Paid Annually</b>.</td></tr><tr><th>Trick / Hack</th><td>5-Year TD gives 80C Tax Benefit.</td></tr><tr><th>Penalty</th><td>Interest reduced to SB rate if closed early.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable. 5Y TD Principal is 80C deductible.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged)</td></tr></table>`,
+    'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+ (55+ for VRS)</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Quarterly)</td></tr><tr><th>Pay Details</th><td>Paid April 1, July 1, Oct 1, Jan 1</td></tr><tr><th>Trick / Hack</th><td>Reinvest quarterly payout into RD.</td></tr><tr><th>Penalty</th><td>1.5% (1-2 yrs), 1% (>2 yrs) deduction.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable (TDS if interest > ₹50k/yr).</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
+    'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Paid at Maturity (Deemed Reinvested)</td></tr><tr><th>Rule</th><td>Interest is added back to principal yearly.</td></tr><tr><th>Penalty</th><td>Premature closure only in specific cases.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest deemed reinvested (80C eligible).</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`,
+    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months (9 Years 7 Months)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Doubles your money at maturity</td></tr><tr><th>Rule</th><td>Fixed tenure based on interest rate.</td></tr><tr><th>Penalty</th><td>Lock-in period of 2.5 Years.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Fully Taxable. No 80C benefit.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`
 };
 
 function numToWord(val, divId) {
     const div = document.getElementById(divId); if (!div) return;
-    let n = parseInt(val); if (!n || n === 0) { div.innerText = ""; return; }
+    let n = parseInt(val);
+    if (!n || n === 0) { div.innerText = ""; return; }
     const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
     const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
     const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
     function convert(num) {
-        if (num < 10) return units[num]; if (num < 20) return teens[num - 10];
+        if (num < 10) return units[num];
+        if (num < 20) return teens[num - 10];
         if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? " " + units[num % 10] : "");
         if (num < 1000) return units[Math.floor(num / 100)] + " Hundred" + (num % 100 !== 0 ? " " + convert(num % 100) : "");
         return "";
@@ -120,7 +122,7 @@ const Engines = {
     }
 };
 /* =========================================
-   PART 2: UI CONTROLLER (CUSTOM DROPDOWN)
+   PART 2: UI CONTROLLER & RENDER LOGIC
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -130,16 +132,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const realSelector = document.getElementById('schemeSelector');
     
-    // Listen for changes triggered by custom dropdown
-    realSelector.addEventListener('change', (e) => { 
-        toggleInputs(); 
-        updateInfoContent(e.target.value); 
-    });
+    // Listen for changes on the hidden real selector
+    if(realSelector) {
+        realSelector.addEventListener('change', (e) => { 
+            toggleInputs(); 
+            updateInfoContent(e.target.value); 
+        });
+    }
     
-    // Custom Dropdown Logic
+    // --- NEW CUSTOM DROPDOWN LOGIC ---
     const header = document.getElementById('dropdownHeader');
     const list = document.getElementById('dropdownList');
-    if(header && list) {
+    if (header && list) {
         const items = list.querySelectorAll('li');
         const headerText = header.querySelector('span');
 
@@ -150,18 +154,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         items.forEach(item => {
             item.addEventListener('click', () => {
+                // Update UI
                 headerText.innerHTML = item.innerHTML;
                 items.forEach(i => i.classList.remove('selected'));
                 item.classList.add('selected');
                 list.classList.remove('open');
                 header.classList.remove('active');
 
-                // Trigger the real selector
-                realSelector.value = item.getAttribute('data-value');
-                realSelector.dispatchEvent(new Event('change'));
+                // Secretly update the real hidden select and trigger the math logic
+                if(realSelector) {
+                    realSelector.value = item.getAttribute('data-value');
+                    realSelector.dispatchEvent(new Event('change'));
+                }
             });
         });
 
+        // Close dropdown if user clicks anywhere outside of it
         document.addEventListener('click', (e) => {
             if (!document.getElementById('customSchemeDropdown').contains(e.target)) {
                 list.classList.remove('open');
@@ -169,22 +177,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    // ---------------------------------
 
-    document.getElementById('btnCalculate').addEventListener('click', handleCalculate);
-    document.getElementById('btnInfo').addEventListener('click', openModal);
-    document.getElementById('closeInfo').addEventListener('click', closeModal);
-    document.getElementById('infoModal').addEventListener('click', (e) => { 
-        if(e.target.id === 'infoModal') closeModal(); 
-    });
+    const btnCalc = document.getElementById('btnCalculate');
+    if(btnCalc) btnCalc.addEventListener('click', handleCalculate);
     
-    document.getElementById('btnShare').addEventListener('click', captureAndShare);
+    const btnInfo = document.getElementById('btnInfo');
+    if(btnInfo) btnInfo.addEventListener('click', openModal);
+    
+    const btnCloseInfo = document.getElementById('closeInfo');
+    if(btnCloseInfo) btnCloseInfo.addEventListener('click', closeModal);
+    
+    const infoModal = document.getElementById('infoModal');
+    if(infoModal) {
+        infoModal.addEventListener('click', (e) => { 
+            if(e.target.id === 'infoModal') closeModal(); 
+        });
+    }
+    
+    const btnShare = document.getElementById('btnShare');
+    if(btnShare) btnShare.addEventListener('click', captureAndShare);
 });
 
-function openModal() { const s = document.getElementById('schemeSelector').value; updateInfoContent(s); document.getElementById('infoModal').classList.add('show'); }
-function closeModal() { document.getElementById('infoModal').classList.remove('show'); }
+function openModal() { 
+    const s = document.getElementById('schemeSelector').value; 
+    updateInfoContent(s); 
+    document.getElementById('infoModal').classList.add('show'); 
+}
+
+function closeModal() { 
+    document.getElementById('infoModal').classList.remove('show'); 
+}
+
 function updateInfoContent(scheme) {
     const container = document.getElementById('ruleContent');
-    container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#64748B; padding:20px;'>Please select a scheme to view details.</p>";
+    container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>";
 }
 
 function toggleInputs() {
@@ -211,16 +238,26 @@ function setSSAMode(mode) {
     document.querySelectorAll('#input-ssa .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-ssa').dataset.mode = mode;
-    if (mode === 'annual') { unhide('ssa-annual-inputs'); document.getElementById('ssa-monthly-inputs').classList.add('hidden'); } 
-    else { unhide('ssa-monthly-inputs'); document.getElementById('ssa-annual-inputs').classList.add('hidden'); }
+    if (mode === 'annual') { 
+        unhide('ssa-annual-inputs'); 
+        document.getElementById('ssa-monthly-inputs').classList.add('hidden'); 
+    } else { 
+        unhide('ssa-monthly-inputs'); 
+        document.getElementById('ssa-annual-inputs').classList.add('hidden'); 
+    }
 }
 
 function setPPFMode(mode) {
     document.querySelectorAll('#input-ppf .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-ppf').dataset.mode = mode;
-    if (mode === 'annual') { unhide('ppf-annual-inputs'); document.getElementById('ppf-monthly-inputs').classList.add('hidden'); } 
-    else { unhide('ppf-monthly-inputs'); document.getElementById('ppf-annual-inputs').classList.add('hidden'); }
+    if (mode === 'annual') { 
+        unhide('ppf-annual-inputs'); 
+        document.getElementById('ppf-monthly-inputs').classList.add('hidden'); 
+    } else { 
+        unhide('ppf-monthly-inputs'); 
+        document.getElementById('ppf-annual-inputs').classList.add('hidden'); 
+    }
 }
 
 function setMISMode(type) {
@@ -229,7 +266,7 @@ function setMISMode(type) {
     document.getElementById('input-mis').dataset.type = type;
 }
 /* =========================================
-   PART 3: CALCULATION & RENDER LOGIC
+   PART 3: CALCULATION EXECUTION
    ========================================= */
 
 function handleCalculate() {
@@ -239,7 +276,8 @@ function handleCalculate() {
     const conf = SCHEMES[s];
     
     hideWarn(); 
-    let p = 0; let mode = 'annual';
+    let p = 0; 
+    let mode = 'annual';
 
     if (s === 'ssa') {
         mode = document.getElementById('input-ssa').dataset.mode || 'annual';
@@ -250,7 +288,9 @@ function handleCalculate() {
         mode = document.getElementById('input-ppf').dataset.mode || 'annual';
         p = (mode === 'annual') ? getVal('ppfDepositAnnual') : getVal('ppfDepositMonthly');
     }
-    else if (s === 'td') { p = getVal('tdDeposit'); }
+    else if (s === 'td') {
+        p = getVal('tdDeposit');
+    }
     else if (s === 'mis') {
         p = getVal('misDeposit');
         const type = document.getElementById('input-mis').dataset.type || 'single';
@@ -283,7 +323,7 @@ function handleCalculate() {
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
     
-    renderSimple(res);
+    if(res) renderSimple(res);
 }
 
 function renderSimple(data) {
@@ -291,7 +331,9 @@ function renderSimple(data) {
     document.getElementById('resTotalInt').innerText = fmt(data.int);
     document.getElementById('resMaturity').innerText = fmt(data.mat);
     
-    if (data.date) { document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    if (data.date) {
+        document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
 
     if (data.payout) {
         document.getElementById('rowPayout').classList.remove('hidden');
@@ -328,42 +370,90 @@ function captureAndShare() {
     const btn = document.getElementById('btnShare');
     const originalText = btn.innerText;
     
-    btn.innerText = "⏳ Processing..."; btn.disabled = true;
+    btn.innerText = "⏳ Processing..."; 
+    btn.disabled = true;
 
     const source = document.getElementById('resultsCard');
     const clone = source.cloneNode(true);
     
-    if(clone.querySelector('.download-actions')) { clone.querySelector('.download-actions').style.display = 'none'; }
+    if(clone.querySelector('.download-actions')) {
+        clone.querySelector('.download-actions').style.display = 'none';
+    }
 
-    clone.style.width = '794px'; clone.style.minHeight = '1123px'; clone.style.padding = '40px';
-    clone.style.background = 'white'; clone.style.position = 'fixed'; clone.style.top = '0'; clone.style.left = '0'; clone.style.zIndex = '-100';
+    clone.style.width = '794px'; 
+    clone.style.minHeight = '1123px';
+    clone.style.padding = '40px';
+    clone.style.background = 'white';
+    clone.style.position = 'fixed'; 
+    clone.style.top = '0'; 
+    clone.style.left = '0';
+    clone.style.zIndex = '-100';
     
     const tableWrap = clone.querySelector('.table-wrapper');
-    if(tableWrap) { tableWrap.style.overflow = 'visible'; tableWrap.style.border = 'none'; }
+    if(tableWrap) { 
+        tableWrap.style.overflow = 'visible'; 
+        tableWrap.style.border = 'none'; 
+    }
     const table = clone.querySelector('table');
     if(table) table.style.width = '100%';
     
-    clone.querySelectorAll('th, td').forEach(cell => { cell.style.whiteSpace = 'nowrap'; });
+    clone.querySelectorAll('th, td').forEach(cell => {
+        cell.style.whiteSpace = 'nowrap';
+    });
 
     document.body.appendChild(clone);
 
-    html2canvas(clone, { scale: 4, useCORS: true, scrollY: -window.scrollY }).then(async canvas => {
+    html2canvas(clone, { 
+        scale: 4, 
+        useCORS: true, 
+        scrollY: -window.scrollY 
+    }).then(async canvas => {
         document.body.removeChild(clone); 
+        
         canvas.toBlob(async (blob) => {
             const file = new File([blob], "PostCalc-Report.png", { type: "image/png" });
+
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share({ title: 'PostCalc Report', text: 'Here is the India Post scheme calculation.', files: [file] }); } catch (err) { }
+                try {
+                    await navigator.share({
+                        title: 'PostCalc Report',
+                        text: 'Here is the India Post scheme calculation.',
+                        files: [file],
+                    });
+                } catch (err) { console.log("Share cancelled", err); }
             } else {
-                const link = document.createElement('a'); link.download = 'PostCalc-Report.png'; link.href = URL.createObjectURL(blob); link.click();
+                const link = document.createElement('a');
+                link.download = 'PostCalc-Report.png';
+                link.href = URL.createObjectURL(blob);
+                link.click();
             }
-            btn.innerText = originalText; btn.disabled = false;
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
         });
     }).catch(err => {
-        console.error(err); btn.innerText = originalText; btn.disabled = false; alert("Error generating image.");
+        console.error(err);
+        btn.innerText = originalText;
+        btn.disabled = false;
+        alert("Error generating image.");
     });
 }
 
-function getVal(id) { const el = document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; }
-function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
-function showWarn(m) { const w = document.getElementById('warningBox'); w.innerText = '⚠️ ' + m; w.style.display = 'block'; }
-function hideWarn() { document.getElementById('warningBox').style.display = 'none'; }
+function getVal(id) { 
+    const el = document.getElementById(id); 
+    return el ? (parseFloat(el.value)||0) : 0; 
+}
+
+function fmt(n) { 
+    return '₹' + Math.round(n).toLocaleString('en-IN'); 
+}
+
+function showWarn(m) { 
+    const w = document.getElementById('warningBox'); 
+    w.innerText = '⚠️ ' + m; 
+    w.style.display = 'block'; 
+}
+
+function hideWarn() { 
+    document.getElementById('warningBox').style.display = 'none'; 
+       }

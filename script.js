@@ -523,7 +523,7 @@ function captureAndShare() {
     document.body.appendChild(clone);
 
     html2canvas(clone, { 
-        scale: 2, 
+        scale: 3, 
         useCORS: true, 
         scrollY: -window.scrollY 
     }).then(async canvas => {

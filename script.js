@@ -443,7 +443,10 @@ function handleCalculate() {
     
     if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
     else if (s === 'ppf') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ppf', mode);
-    else if (s === 'ssa') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode);
+    else if (s === 'ssa') {
+        let currentAge = parseInt(document.getElementById('ssaAge').value) || 0;
+        res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, currentAge);
+    }
     else if (s === 'rd') res = Engines.calcRD(p, conf.rate, d);
     else if (s === 'mis') res = Engines.calcPayout(p, conf.rate, 5, 12, d);
     else if (s === 'scss') res = Engines.calcPayout(p, conf.rate, 5, 4, d);
@@ -474,8 +477,13 @@ function renderSimple(data) {
     }
 
     const head = document.getElementById('resHead');
+    const head = document.getElementById('resHead');
     if (data.type === 'payout') {
         head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`;
+    } else if (data.type === 'ssa') {
+        head.innerHTML = `<tr><th>Period (FY)</th><th style="text-align:center;">Age</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
+    } else if (data.type === 'ppf') {
+        head.innerHTML = `<tr><th>Period (FY)</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
     } else {
         head.innerHTML = `<tr><th>Period</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
     }
@@ -483,6 +491,8 @@ function renderSimple(data) {
     document.getElementById('resBody').innerHTML = data.rows.map(r => {
         if(data.type === 'payout') {
             return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
+        } else if (data.type === 'ssa') {
+            return `<tr><td>${r.lbl}</td><td style="text-align:center;">${r.age}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
         }
         return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
     }).join('');

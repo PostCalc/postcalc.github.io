@@ -458,7 +458,7 @@ function hideWarn() {
     document.getElementById('warningBox').style.display = 'none'; 
        }
 /* =========================================
-   PART 4: PWA SERVICE WORKER & UPDATE LOGIC
+   PART 4: PWA SERVICE WORKER & AUTOMATIC UPDATE LOGIC
    ========================================= */
 
 let newWorker;
@@ -469,7 +469,7 @@ if ('serviceWorker' in navigator) {
         // 1. If an update is already waiting, show the toast
         if (reg.waiting) {
             newWorker = reg.waiting;
-            showUpdateToast();
+            fetchChangelogAndShowToast();
         }
 
         // 2. Listen for new updates downloading in the background
@@ -478,7 +478,7 @@ if ('serviceWorker' in navigator) {
             newWorker.addEventListener('statechange', () => {
                 // If installation is complete and there's an existing controller, it's an update!
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    showUpdateToast();
+                    fetchChangelogAndShowToast();
                 }
             });
         });
@@ -492,6 +492,26 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
         }
     });
+}
+
+function fetchChangelogAndShowToast() {
+    // Exact GitHub API link for PostCalc/postcalc.github.io
+    const githubAPI = "https://api.github.com/repos/PostCalc/postcalc.github.io/commits?per_page=1";
+    
+    fetch(githubAPI)
+        .then(response => response.json())
+        .then(data => {
+            const clEl = document.getElementById('updateChangelog');
+            if (clEl && data && data.length > 0) {
+                // Automatically grabs whatever you typed in the "Commit message" box on GitHub!
+                let commitMessage = data[0].commit.message;
+                clEl.innerText = "✨ " + commitMessage;
+            }
+            showUpdateToast();
+        })
+        .catch(() => {
+            showUpdateToast(); // Show toast even if offline
+        });
 }
 
 function showUpdateToast() {

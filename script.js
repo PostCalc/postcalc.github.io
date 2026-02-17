@@ -457,3 +457,64 @@ function showWarn(m) {
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
        }
+/* =========================================
+   PART 4: PWA SERVICE WORKER & UPDATE LOGIC
+   ========================================= */
+
+let newWorker;
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+        
+        // 1. If an update is already waiting, show the toast
+        if (reg.waiting) {
+            newWorker = reg.waiting;
+            showUpdateToast();
+        }
+
+        // 2. Listen for new updates downloading in the background
+        reg.addEventListener('updatefound', () => {
+            newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+                // If installation is complete and there's an existing controller, it's an update!
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    showUpdateToast();
+                }
+            });
+        });
+    });
+
+    // 3. Listen for the update command to refresh the page automatically
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            window.location.reload();
+            refreshing = true;
+        }
+    });
+}
+
+function showUpdateToast() {
+    const toast = document.getElementById('updateToast');
+    if (toast) toast.classList.add('show');
+}
+
+// Attach listeners for the Toast Buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const btnUpdate = document.getElementById('btnUpdateApp');
+    const btnClose = document.getElementById('btnCloseToast');
+    const toast = document.getElementById('updateToast');
+
+    if (btnUpdate) {
+        btnUpdate.addEventListener('click', () => {
+            // Tell the waiting Service Worker to skip waiting and activate immediately
+            if (newWorker) newWorker.postMessage({ action: 'skipWaiting' });
+        });
+    }
+
+    if (btnClose) {
+        btnClose.addEventListener('click', () => {
+            if (toast) toast.classList.remove('show');
+        });
+    }
+});

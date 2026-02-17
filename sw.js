@@ -1,5 +1,5 @@
 // ✅ Version v22 (Maximum Resilience PWA Strategy)
-const CACHE_NAME = "postcalc-cache-v23";
+const CACHE_NAME = "postcalc-cache-v24";
 
 // 1. Critical assets needed for instant offline load
 const PRECACHE_ASSETS = [

@@ -1,4 +1,4 @@
-// ✅ Version v19 (Maximum Resilience PWA Strategy)
+// ✅ Version v20 (Maximum Resilience PWA Strategy)
 const CACHE_NAME = "postcalc-cache-v19";
 
 // 1. Critical assets needed for instant offline load

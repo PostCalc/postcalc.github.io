@@ -140,3 +140,39 @@ tr:nth-child(even) td:first-child { background-color: #F8FAFC; }
 .modal-close { background: #F1F5F9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s;}
 .modal-close:hover { background: var(--border-light); color: var(--text-main);}
 @media (min-width: 600px) { .modal-overlay { align-items: center; } .modal-content { border-radius: var(--radius-lg); width: 90%; transform: scale(0.95); } .modal-overlay.show .modal-content { transform: scale(1); } }
+
+/* --- PWA UPDATE TOAST --- */
+.update-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px); /* Hidden off-screen initially */
+    background: var(--surface);
+    border: 2px solid var(--ip-gold);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 90%;
+    max-width: 400px;
+}
+.update-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.toast-icon { font-size: 1.8rem; }
+.toast-text { flex: 1; }
+.toast-text strong { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 800; letter-spacing: 0.3px; }
+.toast-text p { margin: 2px 0 0; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.btn-toast { background: linear-gradient(135deg, var(--ip-ruby) 0%, var(--ip-crimson) 100%); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.8rem; font-weight: 800; cursor: pointer; text-transform: uppercase; box-shadow: var(--shadow-btn); transition: 0.2s;}
+.btn-toast:active { transform: scale(0.95); }
+.btn-toast-close { background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0 6px; transition: 0.2s;}

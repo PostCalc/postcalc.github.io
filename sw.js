@@ -1,5 +1,5 @@
-// ✅ Version v32 (Stable PWA Strategy)
-const CACHE_NAME = "postcalc-cache-v32";
+// ✅ Version v25 (Silent Auto-Update Strategy)
+const CACHE_NAME = "postcalc-cache-v25";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -17,9 +17,9 @@ const CDN_URLS = [
   "fonts.gstatic.com"
 ];
 
-// ✅ Install Event: Wait for user to click Update
+// ✅ Install Event: FORCE IMMEDIATE UPDATE
 self.addEventListener("install", (event) => {
-  // Removed self.skipWaiting() so it DOES NOT auto-refresh and destroy the popup!
+  self.skipWaiting(); // <--- THIS MAKES IT INSTANT AND SILENT
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS);
@@ -27,7 +27,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// ✅ Activate Event: Clean up old caches
+// ✅ Activate Event: Clean up old caches immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -40,10 +40,10 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
-  self.clients.claim(); 
+  self.clients.claim(); // Take control instantly
 });
 
-// ✅ Fetch Event: Advanced Multi-Strategy Routing
+// ✅ Fetch Event: Network First for HTML, Cache for Assets
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
@@ -80,12 +80,5 @@ self.addEventListener("fetch", (event) => {
         return cachedResponse || fetchPromise;
       })
     );
-  }
-});
-
-// ✅ Message Event: Listen for the "Update" button click
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.action === "skipWaiting") {
-    self.skipWaiting();
   }
 });

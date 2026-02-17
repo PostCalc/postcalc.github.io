@@ -457,7 +457,9 @@ function showWarn(m) {
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
        }
-/* =========================================
+
+
+    /* =========================================
    PART 4: PWA SERVICE WORKER & AUTOMATIC UPDATE LOGIC
    ========================================= */
 
@@ -466,17 +468,14 @@ let newWorker;
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
         
-        // 1. If an update is already waiting, show the toast
         if (reg.waiting) {
             newWorker = reg.waiting;
             fetchChangelogAndShowToast();
         }
 
-        // 2. Listen for new updates downloading in the background
         reg.addEventListener('updatefound', () => {
             newWorker = reg.installing;
             newWorker.addEventListener('statechange', () => {
-                // If installation is complete and there's an existing controller, it's an update!
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                     fetchChangelogAndShowToast();
                 }
@@ -484,7 +483,6 @@ if ('serviceWorker' in navigator) {
         });
     });
 
-    // 3. Listen for the update command to refresh the page automatically
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -495,22 +493,28 @@ if ('serviceWorker' in navigator) {
 }
 
 function fetchChangelogAndShowToast() {
-    // Exact GitHub API link for PostCalc/postcalc.github.io
     const githubAPI = "https://api.github.com/repos/PostCalc/postcalc.github.io/commits?per_page=1";
+    const fallbackMessage = "✨ Bug fixes and performance upgrades.";
+    const clEl = document.getElementById('updateChangelog');
     
     fetch(githubAPI)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error("API Error");
+            return response.json();
+        })
         .then(data => {
-            const clEl = document.getElementById('updateChangelog');
             if (clEl && data && data.length > 0) {
-                // Automatically grabs whatever you typed in the "Commit message" box on GitHub!
-                let commitMessage = data[0].commit.message;
-                clEl.innerText = "✨ " + commitMessage;
+                // Remove the extra spacing from the commit message
+                clEl.innerText = "✨ " + data[0].commit.message.split('\n')[0]; 
+            } else if (clEl) {
+                clEl.innerText = fallbackMessage;
             }
             showUpdateToast();
         })
         .catch(() => {
-            showUpdateToast(); // Show toast even if offline
+            // If the internet is slow or GitHub blocks the request, show this instead of blank text
+            if (clEl) clEl.innerText = fallbackMessage;
+            showUpdateToast(); 
         });
 }
 
@@ -519,7 +523,6 @@ function showUpdateToast() {
     if (toast) toast.classList.add('show');
 }
 
-// Attach listeners for the Toast Buttons
 document.addEventListener('DOMContentLoaded', () => {
     const btnUpdate = document.getElementById('btnUpdateApp');
     const btnClose = document.getElementById('btnCloseToast');
@@ -527,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnUpdate) {
         btnUpdate.addEventListener('click', () => {
-            // Tell the waiting Service Worker to skip waiting and activate immediately
+            btnUpdate.innerText = "Updating...";
             if (newWorker) newWorker.postMessage({ action: 'skipWaiting' });
         });
     }

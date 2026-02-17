@@ -457,32 +457,14 @@ function showWarn(m) {
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
        }
-
-
-    /* =========================================
-   PART 4: PWA SERVICE WORKER & AUTOMATIC UPDATE LOGIC
+/* =========================================
+   PART 4: SILENT AUTO-UPDATE LOGIC
    ========================================= */
 
-let newWorker;
-
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-        
-        if (reg.waiting) {
-            newWorker = reg.waiting;
-            fetchChangelogAndShowToast();
-        }
+    navigator.serviceWorker.register('sw.js');
 
-        reg.addEventListener('updatefound', () => {
-            newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    fetchChangelogAndShowToast();
-                }
-            });
-        });
-    });
-
+    // Automatically reload the page once a new update is downloaded
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -491,53 +473,3 @@ if ('serviceWorker' in navigator) {
         }
     });
 }
-
-function fetchChangelogAndShowToast() {
-    const githubAPI = "https://api.github.com/repos/PostCalc/postcalc.github.io/commits?per_page=1";
-    const fallbackMessage = "✨ Bug fixes and performance upgrades.";
-    const clEl = document.getElementById('updateChangelog');
-    
-    fetch(githubAPI)
-        .then(response => {
-            if (!response.ok) throw new Error("API Error");
-            return response.json();
-        })
-        .then(data => {
-            if (clEl && data && data.length > 0) {
-                // Remove the extra spacing from the commit message
-                clEl.innerText = "✨ " + data[0].commit.message.split('\n')[0]; 
-            } else if (clEl) {
-                clEl.innerText = fallbackMessage;
-            }
-            showUpdateToast();
-        })
-        .catch(() => {
-            // If the internet is slow or GitHub blocks the request, show this instead of blank text
-            if (clEl) clEl.innerText = fallbackMessage;
-            showUpdateToast(); 
-        });
-}
-
-function showUpdateToast() {
-    const toast = document.getElementById('updateToast');
-    if (toast) toast.classList.add('show');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const btnUpdate = document.getElementById('btnUpdateApp');
-    const btnClose = document.getElementById('btnCloseToast');
-    const toast = document.getElementById('updateToast');
-
-    if (btnUpdate) {
-        btnUpdate.addEventListener('click', () => {
-            btnUpdate.innerText = "Updating...";
-            if (newWorker) newWorker.postMessage({ action: 'skipWaiting' });
-        });
-    }
-
-    if (btnClose) {
-        btnClose.addEventListener('click', () => {
-            if (toast) toast.classList.remove('show');
-        });
-    }
-});

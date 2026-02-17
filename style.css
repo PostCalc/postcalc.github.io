@@ -48,7 +48,7 @@ header::after { content: ''; position: absolute; width: 200px; height: 200px; ba
 .dropdown-arrow { font-size: 0.8rem; color: var(--text-muted); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .dropdown-header.active .dropdown-arrow { transform: rotate(180deg); color: var(--ip-ruby); }
 .dropdown-list { position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 12px 40px rgba(0,0,0,0.15); border: 1px solid var(--border-light); max-height: 0; overflow-y: auto; overflow-x: hidden; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 0; margin: 0; list-style: none; }
-.dropdown-list.open { max-height: 250px; opacity: 1; visibility: visible; padding: 8px 0; }
+.dropdown-list.open { max-height: 500px; opacity: 1; visibility: visible; padding: 8px 0; }
 .dropdown-list li { padding: 14px 16px; font-size: 0.95rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #F1F5F9; }
 .dropdown-list li:last-child { border-bottom: none; }
 .dropdown-list li:hover { background: #FFF0F0; color: var(--ip-crimson); }

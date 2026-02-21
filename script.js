@@ -332,6 +332,9 @@ function handleCalculate() {
         const limit = (type === 'single') ? 900000 : 1500000;
         if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
     }
+       else if (s === 'rd_ext') {
+        p = getVal('rdExtDeposit');
+       }
     else { 
         let id = s + 'Deposit';
         p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
@@ -357,6 +360,12 @@ function handleCalculate() {
     }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
+   else if (s === 'rd_ext') {
+        let extRate = getVal('rdExtRate') || 6.7;
+        let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
+        let extType = document.getElementById('rdExtType').value || 'with';
+        res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
+   }
     
     if(res) renderSimple(res);
 }

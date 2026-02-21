@@ -5,6 +5,7 @@
 const SCHEMES = {
     'sb': { name: "Savings Account", rate: 4.0, min: 500, tenure: 1 },
     'rd': { name: "Recurring Deposit", rate: 6.7, min: 100, tenure: 5 },
+   'rd_ext': { name: "RD (Extension)", min: 100 },
     'mis': { name: "Monthly Income Scheme", rate: 7.4, min: 1000, max: 900000, jointMax: 1500000, tenure: 5 },
     'scss': { name: "Senior Citizen Savings", rate: 8.2, min: 1000, max: 3000000, tenure: 5 },
     'ppf': { name: "Public Provident Fund", rate: 7.1, min: 500, max: 150000, tenure: 15 },

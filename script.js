@@ -5,7 +5,6 @@
 const SCHEMES = {
     'sb': { name: "Savings Account", rate: 4.0, min: 500, tenure: 1 },
     'rd': { name: "Recurring Deposit", rate: 6.7, min: 100, tenure: 5 },
-   'rd_ext': { name: "RD (Extension)", min: 100 },
     'mis': { name: "Monthly Income Scheme", rate: 7.4, min: 1000, max: 900000, jointMax: 1500000, tenure: 5 },
     'scss': { name: "Senior Citizen Savings", rate: 8.2, min: 1000, max: 3000000, tenure: 5 },
     'ppf': { name: "Public Provident Fund", rate: 7.1, min: 500, max: 150000, tenure: 15 },
@@ -24,8 +23,7 @@ const SCHEME_RULES = {
     'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td><b>Quarterly</b></td></tr><tr><th>Pay Details</th><td>Calculated quarterly, <b>Paid Annually</b>.</td></tr><tr><th>Trick / Hack</th><td>5-Year TD gives 80C Tax Benefit.</td></tr><tr><th>Penalty</th><td>Interest reduced to SB rate if closed early.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable. 5Y TD Principal is 80C deductible.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged)</td></tr></table>`,
     'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+ (55+ for VRS)</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Quarterly)</td></tr><tr><th>Pay Details</th><td>Paid April 1, July 1, Oct 1, Jan 1</td></tr><tr><th>Trick / Hack</th><td>Reinvest quarterly payout into RD.</td></tr><tr><th>Penalty</th><td>1.5% (1-2 yrs), 1% (>2 yrs) deduction.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable (TDS if interest > ₹50k/yr).</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
     'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Paid at Maturity (Deemed Reinvested)</td></tr><tr><th>Rule</th><td>Interest is added back to principal yearly.</td></tr><tr><th>Penalty</th><td>Premature closure only in specific cases.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest deemed reinvested (80C eligible).</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`,
-    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months (9 Years 7 Months)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Doubles your money at maturity</td></tr><tr><th>Rule</th><td>Fixed tenure based on interest rate.</td></tr><tr><th>Penalty</th><td>Lock-in period of 2.5 Years.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Fully Taxable. No 80C benefit.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`,
-   'rd_ext': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>Historical (Editable)</td></tr><tr><th>Tenure</th><td>1 to 5 Years Extended</td></tr><tr><th>Eligibility</th><td>Existing 5-Year RD</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Quarterly Compounding</td></tr><tr><th>With Deposit</th><td>Keep paying monthly to continue chain.</td></tr><tr><th>Without Deposit</th><td>Stop paying; 5-year maturity earns compound interest.</td></tr></table>`
+    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months (9 Years 7 Months)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Doubles your money at maturity</td></tr><tr><th>Rule</th><td>Fixed tenure based on interest rate.</td></tr><tr><th>Penalty</th><td>Lock-in period of 2.5 Years.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Fully Taxable. No 80C benefit.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`
 };
 
 function numToWord(val, divId) {
@@ -122,7 +120,7 @@ const Engines = {
         let matDate = new Date(d); matDate.setMonth(d.getMonth() + 115);
         return { dep: p, int: p, mat: p*2, date: matDate, rows: [{lbl:'Maturity (115 Mo)', op:p, dep:0, int:p, cl:p*2}], type: 'compound' };
     },
-   calcRD_EXT: (p, r, extYrs, type, d) => {
+    calcRD_EXT: (p, r, extYrs, type, d) => {
         let quarterlyRate = r / 400;
         let matDate = new Date(d);
 
@@ -154,7 +152,7 @@ const Engines = {
         }
 
         return { dep: totalDeposit, int: maturityAmount - totalDeposit, mat: maturityAmount, date: matDate, rows: rows, type: 'compound' };
-   }
+    }
 };
 /* =========================================
    PART 2: UI CONTROLLER & RENDER LOGIC
@@ -167,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const realSelector = document.getElementById('schemeSelector');
     
-    // Listen for changes on the hidden real selector
     if(realSelector) {
         realSelector.addEventListener('change', (e) => { 
             toggleInputs(); 
@@ -175,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- NEW CUSTOM DROPDOWN LOGIC ---
+    // --- CUSTOM DROPDOWN LOGIC ---
     const header = document.getElementById('dropdownHeader');
     const list = document.getElementById('dropdownList');
     if (header && list) {
@@ -189,14 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         items.forEach(item => {
             item.addEventListener('click', () => {
-                // Update UI
                 headerText.innerHTML = item.innerHTML;
                 items.forEach(i => i.classList.remove('selected'));
                 item.classList.add('selected');
                 list.classList.remove('open');
                 header.classList.remove('active');
 
-                // Secretly update the real hidden select and trigger the math logic
                 if(realSelector) {
                     realSelector.value = item.getAttribute('data-value');
                     realSelector.dispatchEvent(new Event('change'));
@@ -204,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Close dropdown if user clicks anywhere outside of it
         document.addEventListener('click', (e) => {
             if (!document.getElementById('customSchemeDropdown').contains(e.target)) {
                 list.classList.remove('open');
@@ -212,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // ---------------------------------
 
     const btnCalc = document.getElementById('btnCalculate');
     if(btnCalc) btnCalc.addEventListener('click', handleCalculate);
@@ -232,6 +225,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const btnShare = document.getElementById('btnShare');
     if(btnShare) btnShare.addEventListener('click', captureAndShare);
+
+    // --- NEW: RD EXTENSION INLINE LOGIC ---
+    const btnShowExt = document.getElementById('btnShowExtend');
+    if(btnShowExt) {
+        btnShowExt.addEventListener('click', () => {
+            btnShowExt.classList.add('hidden'); // Hide the button
+            document.getElementById('rdExtendInputs').classList.remove('hidden'); // Show the inputs
+        });
+    }
+
+    const btnCalcExt = document.getElementById('btnCalcExtend');
+    if(btnCalcExt) {
+        btnCalcExt.addEventListener('click', () => {
+            // Grab the original RD deposit and date directly from the main inputs
+            let p = getVal('rdDeposit'); 
+            if (p < 100) return showWarn("Minimum deposit is ₹100");
+            
+            const dStr = document.getElementById('dateOpen').value;
+            const d = dStr ? new Date(dStr) : new Date();
+            
+            // Grab the specific Extension Inputs
+            let extRate = getVal('rdExtRate') || 6.7;
+            let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
+            let extType = document.getElementById('rdExtType').value || 'with';
+            
+            hideWarn();
+            
+            // Fire the extension engine
+            let res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
+            
+            // Change the title to indicate it's an extension
+            document.getElementById('printSchemeName').innerText = "RD (Extension)";
+            
+            if(res) renderSimple(res);
+        });
+    }
 });
 
 function openModal() { 
@@ -299,7 +328,7 @@ function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-}
+       }
 /* =========================================
    PART 3: CALCULATION EXECUTION
    ========================================= */
@@ -332,9 +361,6 @@ function handleCalculate() {
         const limit = (type === 'single') ? 900000 : 1500000;
         if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
     }
-       else if (s === 'rd_ext') {
-        p = getVal('rdExtDeposit');
-       }
     else { 
         let id = s + 'Deposit';
         p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
@@ -360,12 +386,21 @@ function handleCalculate() {
     }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
-   else if (s === 'rd_ext') {
-        let extRate = getVal('rdExtRate') || 6.7;
-        let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
-        let extType = document.getElementById('rdExtType').value || 'with';
-        res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
-   }
+    
+    // 🚀 NEW: Control the visibility of the "Extend" section based on scheme
+    const extendSection = document.getElementById('rdExtendSection');
+    const extendInputs = document.getElementById('rdExtendInputs');
+    const btnShowExt = document.getElementById('btnShowExtend');
+    
+    if (extendSection && btnShowExt && extendInputs) {
+        if (s === 'rd') {
+            extendSection.classList.remove('hidden'); // Show the wrapper
+            btnShowExt.classList.remove('hidden');    // Show the button
+            extendInputs.classList.add('hidden');     // Hide the inputs (until button is clicked)
+        } else {
+            extendSection.classList.add('hidden');    // Hide completely for non-RD schemes
+        }
+    }
     
     if(res) renderSimple(res);
 }
@@ -422,6 +457,11 @@ function captureAndShare() {
     
     if(clone.querySelector('.download-actions')) {
         clone.querySelector('.download-actions').style.display = 'none';
+    }
+    
+    // Hide the inline RD extension UI in the screenshot
+    if(clone.querySelector('#rdExtendSection')) {
+        clone.querySelector('#rdExtendSection').style.display = 'none';
     }
 
     clone.style.width = '794px'; 
@@ -500,7 +540,8 @@ function showWarn(m) {
 
 function hideWarn() { 
     document.getElementById('warningBox').style.display = 'none'; 
-       }
+}
+
 /* =========================================
    PART 4: SILENT AUTO-UPDATE LOGIC
    ========================================= */
@@ -516,4 +557,4 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
         }
     });
-}
+       }

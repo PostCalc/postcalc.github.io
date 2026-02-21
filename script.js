@@ -121,7 +121,40 @@ const Engines = {
     calcKVP: (p, r, d) => {
         let matDate = new Date(d); matDate.setMonth(d.getMonth() + 115);
         return { dep: p, int: p, mat: p*2, date: matDate, rows: [{lbl:'Maturity (115 Mo)', op:p, dep:0, int:p, cl:p*2}], type: 'compound' };
-    }
+    },
+   calcRD_EXT: (p, r, extYrs, type, d) => {
+        let quarterlyRate = r / 400;
+        let matDate = new Date(d);
+
+        function getRDMaturity(dep, months, qRate) {
+            let mat = 0;
+            for (let m = 1; m <= months; m++) {
+                let quarters = (months - m + 1) / 3;
+                mat += dep * Math.pow(1 + qRate, quarters);
+            }
+            return Math.round(mat);
+        }
+
+        let totalDeposit = 0, maturityAmount = 0;
+        let rows = [];
+
+        if (type === "with") {
+            let totalMonths = 60 + (extYrs * 12);
+            totalDeposit = p * totalMonths;
+            maturityAmount = getRDMaturity(p, totalMonths, quarterlyRate);
+            matDate.setFullYear(d.getFullYear() + 5 + extYrs);
+            rows.push({ lbl: `Maturity (${5 + extYrs} Yrs)`, op: p*60, dep: p*(extYrs*12), int: maturityAmount - totalDeposit, cl: maturityAmount });
+        } else {
+            totalDeposit = p * 60;
+            let baseMaturity = getRDMaturity(p, 60, quarterlyRate);
+            maturityAmount = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, extYrs * 4));
+            matDate.setFullYear(d.getFullYear() + 5 + extYrs);
+            rows.push({ lbl: `Base (5 Yrs)`, op: 0, dep: totalDeposit, int: baseMaturity - totalDeposit, cl: baseMaturity });
+            rows.push({ lbl: `Extended (+${extYrs} Yrs)`, op: baseMaturity, dep: 0, int: maturityAmount - baseMaturity, cl: maturityAmount });
+        }
+
+        return { dep: totalDeposit, int: maturityAmount - totalDeposit, mat: maturityAmount, date: matDate, rows: rows, type: 'compound' };
+   }
 };
 /* =========================================
    PART 2: UI CONTROLLER & RENDER LOGIC

@@ -1,5 +1,5 @@
-// ✅ Version v27 (Silent Auto-Update Strategy)
-const CACHE_NAME = "postcalc-cache-v27";
+// ✅ Version v28 (Silent Auto-Update Strategy)
+const CACHE_NAME = "postcalc-cache-v28";
 
 const PRECACHE_ASSETS = [
   "./",

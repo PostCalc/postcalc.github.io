@@ -123,6 +123,7 @@ const Engines = {
     calcRD_EXT: (p, r, extYrs, type, d) => {
         let quarterlyRate = r / 400;
         let matDate = new Date(d);
+        matDate.setFullYear(d.getFullYear() + 5 + extYrs);
 
         function getRDMaturity(dep, months, qRate) {
             let mat = 0;
@@ -130,29 +131,64 @@ const Engines = {
                 let quarters = (months - m + 1) / 3;
                 mat += dep * Math.pow(1 + qRate, quarters);
             }
-            return Math.round(mat);
+            return mat; // Keep exact precision until final rounding
         }
 
-        let totalDeposit = 0, maturityAmount = 0;
         let rows = [];
+        let totalDeposit = 0;
+        let finalMaturity = 0;
 
+        // 1. Calculate and add the Base 5-Year Summary Row
+        let baseMaturity = Math.round(getRDMaturity(p, 60, quarterlyRate));
+        let baseDeposit = p * 60;
+        rows.push({ lbl: `Base (1-5 Yrs)`, op: 0, dep: baseDeposit, int: baseMaturity - baseDeposit, cl: baseMaturity });
+
+        let previousMaturity = baseMaturity;
+
+        // 2. Loop through and create specific rows for Year 6, 7, 8, etc.
         if (type === "with") {
-            let totalMonths = 60 + (extYrs * 12);
-            totalDeposit = p * totalMonths;
-            maturityAmount = getRDMaturity(p, totalMonths, quarterlyRate);
-            matDate.setFullYear(d.getFullYear() + 5 + extYrs);
-            rows.push({ lbl: `Maturity (${5 + extYrs} Yrs)`, op: p*60, dep: p*(extYrs*12), int: maturityAmount - totalDeposit, cl: maturityAmount });
+            totalDeposit = baseDeposit;
+            for (let y = 1; y <= extYrs; y++) {
+                let currentMonths = 60 + (y * 12);
+                let currentMaturity = Math.round(getRDMaturity(p, currentMonths, quarterlyRate));
+                let yearlyDep = p * 12;
+                
+                totalDeposit += yearlyDep;
+                let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
+                
+                rows.push({ 
+                    lbl: `Year ${5 + y}`, 
+                    op: previousMaturity, 
+                    dep: yearlyDep, 
+                    int: yearlyInt, 
+                    cl: currentMaturity 
+                });
+                previousMaturity = currentMaturity;
+            }
+            finalMaturity = previousMaturity;
+
         } else {
-            totalDeposit = p * 60;
-            let baseMaturity = getRDMaturity(p, 60, quarterlyRate);
-            maturityAmount = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, extYrs * 4));
-            matDate.setFullYear(d.getFullYear() + 5 + extYrs);
-            rows.push({ lbl: `Base (5 Yrs)`, op: 0, dep: totalDeposit, int: baseMaturity - totalDeposit, cl: baseMaturity });
-            rows.push({ lbl: `Extended (+${extYrs} Yrs)`, op: baseMaturity, dep: 0, int: maturityAmount - baseMaturity, cl: maturityAmount });
+            totalDeposit = baseDeposit;
+            for (let y = 1; y <= extYrs; y++) {
+                // Compounds 4 quarters per year
+                let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
+                let yearlyInt = currentMaturity - previousMaturity;
+                
+                rows.push({ 
+                    lbl: `Year ${5 + y}`, 
+                    op: previousMaturity, 
+                    dep: 0, 
+                    int: yearlyInt, 
+                    cl: currentMaturity 
+                });
+                previousMaturity = currentMaturity;
+            }
+            finalMaturity = previousMaturity;
         }
 
-        return { dep: totalDeposit, int: maturityAmount - totalDeposit, mat: maturityAmount, date: matDate, rows: rows, type: 'compound' };
+        return { dep: totalDeposit, int: finalMaturity - totalDeposit, mat: finalMaturity, date: matDate, rows: rows, type: 'compound' };
     }
+    
 };
 /* =========================================
    PART 2: UI CONTROLLER & RENDER LOGIC

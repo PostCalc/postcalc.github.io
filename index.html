@@ -85,6 +85,22 @@
                         <div id="word-rd" class="word-display">Five Thousand Rupees Only</div>
                     </div>
 
+                    <div id="input-pli" class="input-group hidden">
+                        <label>PLI Sum Assured (₹)</label>
+                        <input type="number" id="pliDeposit" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
+                        <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
+                        <label>Age on Next Birthday (19 - 55)</label>
+                        <input type="number" id="pliEntryAge" value="27" min="19" max="55">
+                    </div>
+
+                    <div id="input-rpli" class="input-group hidden">
+                        <label>RPLI Sum Assured (₹)</label>
+                        <input type="number" id="rpliDeposit" value="100000" step="10000" oninput="numToWord(this.value, 'word-rpli')">
+                        <div id="word-rpli" class="word-display">One Lakh Rupees Only</div>
+                        <label>Age on Next Birthday (19 - 55)</label>
+                        <input type="number" id="rpliEntryAge" value="27" min="19" max="55">
+                    </div>
+
                     <div id="input-ssa" class="input-group hidden" data-mode="annual">
                         <label>Girl's Age (Years)</label>
                         <input type="number" id="ssaAge" value="1" max="10" placeholder="0-10 Years">

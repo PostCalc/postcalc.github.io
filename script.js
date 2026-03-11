@@ -594,3 +594,104 @@ if ('serviceWorker' in navigator) {
         }
     });
        }
+
+/* =========================================
+   PART 5: ISOLATED PLI / RPLI ACTUARIAL ENGINE
+   ========================================= */
+
+const PLI_TABLE = {
+    19: {35:26, 40:19, 45:15, 50:12, 55:10, 58:9, 60:9},
+    20: {35:27, 40:20, 45:16, 50:13, 55:10, 58:10, 60:9},
+    21: {35:29, 40:21, 45:16, 50:13, 55:11, 58:10, 60:9},
+    22: {35:32, 40:22, 45:17, 50:14, 55:11, 58:10, 60:10},
+    23: {35:35, 40:24, 45:18, 50:14, 55:12, 58:11, 60:10},
+    24: {35:39, 40:25, 45:19, 50:15, 55:12, 58:11, 60:11},
+    25: {35:45, 40:27, 45:20, 50:16, 55:13, 58:12, 60:11},
+    26: {35:52, 40:30, 45:21, 50:16, 55:14, 58:12, 60:12},
+    27: {35:63, 40:32, 45:23, 50:17, 55:14, 58:13, 60:12},
+    28: {35:78, 40:35, 45:24, 50:18, 55:15, 58:14, 60:13},
+    29: {35:104, 40:39, 45:26, 50:19, 55:16, 58:14, 60:13},
+    30: {35:155, 40:44, 45:28, 50:20, 55:17, 58:15, 60:14},
+    31: {40:49, 45:30, 50:21, 55:17, 58:16, 60:15},
+    32: {40:56, 45:32, 50:23, 55:18, 58:16, 60:15},
+    33: {40:66, 45:35, 50:24, 55:19, 58:17, 60:16},
+    34: {40:180, 45:38, 50:26, 55:20, 58:18, 60:17}, 
+    35: {40:102, 45:42, 50:27, 55:21, 58:19, 60:18}
+};
+
+const RPLI_TABLE = {
+    19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75},
+    20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80},
+    21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85},
+    22: {35:6.35, 40:4.45, 45:13.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
+    23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
+    24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
+    25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
+    26: {35:9.45, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20},
+    27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30},
+    28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40},
+    29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50},
+    30: {35:17.40, 40:8.45, 45:5.45, 50:4.00, 55:3.15, 58:2.75, 60:2.60},
+    31: {40:9.45, 45:5.90, 50:4.25, 55:3.30, 58:2.90, 60:2.70},
+    32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80},
+    33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95},
+    34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
+    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
+};
+
+function generateInsuranceGrid(sa, entryAge, type, d) {
+    const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
+    let rows = [];
+    
+    // Actuarial Variables
+    let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
+    let baseline = type === 'pli' ? 5000 : 1000;
+    let bonusRate = type === 'pli' ? 52 : 48;
+    
+    // GST Setup
+    let gstRate = 0.045; // Legacy first year
+    const reformDate = new Date("2025-09-22");
+    if (d >= reformDate) gstRate = 0.0; // Post reform exemption
+
+    permittedMaturityAges.forEach(matAge => {
+        let term = matAge - entryAge;
+        if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
+            
+            let tableRate = matrix[entryAge][matAge];
+            let monthlyGross = (sa / baseline) * tableRate;
+            
+            // HSA Rebate
+            let hsaRebate = Math.floor(sa / 20000) * 1;
+            let intermediatePremium = monthlyGross - hsaRebate;
+            
+            // Statutory Rounding
+            let basePremiumRounded = Math.ceil(intermediatePremium);
+            
+            // Tax Calculation
+            let taxAmt = Math.round(basePremiumRounded * gstRate);
+            let netPremium = basePremiumRounded + taxAmt;
+            
+            // Bonus Engine
+            let reversionaryBonus = (sa / 1000) * bonusRate * term;
+            let terminalBonus = 0;
+            if (term >= 20) {
+                terminalBonus = Math.min(1000, (sa / 10000) * 20);
+            }
+            let totalBonus = reversionaryBonus + terminalBonus;
+            let finalMaturity = sa + totalBonus;
+
+            rows.push({
+                matAge: matAge,
+                duration: term,
+                premium: basePremiumRounded,
+                rebate: hsaRebate,
+                tax: taxAmt,
+                net: netPremium,
+                bonus: totalBonus,
+                matAmt: finalMaturity
+            });
+        }
+    });
+    
+    return rows;
+                                }

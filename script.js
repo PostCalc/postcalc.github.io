@@ -422,7 +422,48 @@ function handleCalculate() {
     }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
-    
+
+   else if (s === 'pli' || s === 'rpli') {
+        let entryAge = parseInt(document.getElementById(s + 'EntryAge').value);
+        if (entryAge < 19 || entryAge > 55) return showWarn("Age must be between 19 and 55.");
+        if (s === 'pli' && p < 20000) return showWarn("Minimum PLI Sum Assured is ₹20,000.");
+        if (s === 'pli' && p > 5000000) return showWarn("Maximum PLI Sum Assured is ₹50 Lakhs.");
+        if (s === 'rpli' && p < 10000) return showWarn("Minimum RPLI Sum Assured is ₹10,000.");
+        if (s === 'rpli' && p > 1000000) return showWarn("Maximum RPLI Sum Assured is ₹10 Lakhs.");
+        
+        let gridData = generateInsuranceGrid(p, entryAge, s, d);
+        if (gridData.length === 0) return showWarn("No actuarial rates available for this age.");
+        
+        // Custom Render for Grid Table
+        document.getElementById('resTotalDep').innerText = fmt(p);
+        document.getElementById('resTotalInt').innerText = "Varies by Term";
+        document.getElementById('resMaturity').innerText = "See Table Below";
+        document.getElementById('resMatDate').innerText = "-";
+        document.getElementById('rowPayout').classList.add('hidden');
+        
+        document.getElementById('lblTotalDep').innerText = "Sum Assured";
+        document.getElementById('lblTotalInt').innerText = "Bonus Status";
+        
+        let head = document.getElementById('resHead');
+        head.innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net Prem.</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
+        
+        document.getElementById('resBody').innerHTML = gridData.map(r => {
+            return `<tr>
+                <td style="text-align:left; font-weight:800;">${r.matAge} Yrs</td>
+                <td>${r.duration} Y</td>
+                <td>₹${r.premium}</td>
+                <td>₹${r.rebate}</td>
+                <td>₹${r.tax}</td>
+                <td style="color:#059669; font-weight:800;">₹${r.net}</td>
+                <td>${fmt(r.bonus)}</td>
+                <td style="color:var(--ip-ruby); font-weight:800;">${fmt(r.matAmt)}</td>
+            </tr>`;
+        }).join('');
+        
+        document.getElementById('resultsCard').classList.remove('hidden');
+        document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
+        return; // Halt execution so it doesn't trigger the standard renderer
+   }
     // 🚀 NEW: Control the visibility of the "Extend" section based on scheme
     const extendSection = document.getElementById('rdExtendSection');
     const extendInputs = document.getElementById('rdExtendInputs');

@@ -30,10 +30,11 @@
                     <div class="toggle-btn active" data-cat="savings" style="font-size: 0.9rem;">💰 Savings Schemes</div>
                     <div class="toggle-btn" data-cat="insurance" style="font-size: 0.9rem;">🛡️ Life Insurance</div>
                 </div>
+
                 <h3>Select Scheme</h3>
                 
                 <select id="schemeSelector" style="display: none;">
-                    <option value="">♦ Choose Saving Scheme ♦</option>
+                    <option value="">♦ Choose Scheme ♦</option>
                     <option value="sb">SB - Savings Account</option>
                     <option value="rd">RD - Recurring Deposit</option>
                     <option value="ssa">SSA - Sukanya Samriddhi Account</option>
@@ -43,11 +44,13 @@
                     <option value="scss">SCSS - Senior Citizen Savings Scheme</option>
                     <option value="kvp">KVP - Kisan Vikas Patra</option>
                     <option value="nsc">NSC - National Savings Certificate</option>
+                    <option value="pli">PLI - Santosh (Endowment)</option>
+                    <option value="rpli">RPLI - Gram Santosh</option>
                 </select>
 
                 <div class="custom-dropdown" id="customSchemeDropdown">
                     <div class="dropdown-header" id="dropdownHeader">
-                        <span>-- Choose Saving Scheme --</span>
+                        <span id="ddHeaderText">-- Choose Saving Scheme --</span>
                         <div class="dropdown-arrow">▼</div>
                     </div>
                     <ul class="dropdown-list" id="dropdownList">
@@ -75,7 +78,7 @@
                 <div style="margin-bottom: 20px;">
                     <label>Date of Opening / First Deposit</label>
                     <input type="date" id="dateOpen">
-                    <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest deadlines)</small>
+                    <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest & GST rules)</small>
                 </div>
 
                 <form id="calcForm">
@@ -93,7 +96,7 @@
                     </div>
 
                     <div id="input-pli" class="input-group hidden">
-                        <label>PLI Sum Assured (₹)</label>
+                        <label>Policy Sum Assured (₹)</label>
                         <input type="number" id="pliDeposit" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
                         <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
                         <label>Age on Next Birthday (19 - 55)</label>
@@ -101,13 +104,12 @@
                     </div>
 
                     <div id="input-rpli" class="input-group hidden">
-                        <label>RPLI Sum Assured (₹)</label>
+                        <label>Policy Sum Assured (₹)</label>
                         <input type="number" id="rpliDeposit" value="100000" step="10000" oninput="numToWord(this.value, 'word-rpli')">
                         <div id="word-rpli" class="word-display">One Lakh Rupees Only</div>
                         <label>Age on Next Birthday (19 - 55)</label>
                         <input type="number" id="rpliEntryAge" value="27" min="19" max="55">
                     </div>
-
                     <div id="input-ssa" class="input-group hidden" data-mode="annual">
                         <label>Girl's Age (Years)</label>
                         <input type="number" id="ssaAge" value="1" max="10" placeholder="0-10 Years">
@@ -191,13 +193,12 @@
                 
                 <div id="warningBox" class="warning-box"></div>
                 <button class="btn btn-calc" id="btnCalculate">Calculate</button>
-            </div>
-
-            <div class="card hidden" id="resultsCard">
+    </div>
+    <div class="card hidden" id="resultsCard">
                 <div class="statement-header">
                     <div class="st-left">
                         <h2 id="printSchemeName">Scheme Name</h2>
-                        <span class="st-sub">Interest Estimate Statement</span>
+                        <span class="st-sub" id="printSchemeSub">Interest Estimate Statement</span>
                     </div>
                     <div class="st-right">
                         <span id="printDate">Date: </span>
@@ -207,19 +208,19 @@
                 <h3 class="res-title">Summary</h3>
                 <div class="summary">
                     <div class="summary-item">
-                        <span class="lbl">Total Deposit</span>
+                        <span class="lbl" id="lblTotalDep">Total Deposit</span>
                         <span class="val" id="resTotalDep">-</span>
                     </div>
                     <div class="summary-item">
-                        <span class="lbl">Total Interest</span>
+                        <span class="lbl" id="lblTotalInt">Total Interest</span>
                         <span class="val highlight" id="resTotalInt">-</span>
                     </div>
                     <div class="summary-item">
-                        <span class="lbl">Maturity Amount</span>
+                        <span class="lbl" id="lblMaturity">Maturity Amount</span>
                         <span class="val" id="resMaturity">-</span>
                     </div>
                     <div class="summary-item">
-                        <span class="lbl">Maturity Date</span>
+                        <span class="lbl" id="lblMatDate">Maturity Date</span>
                         <span class="val" id="resMatDate">-</span>
                     </div>
                     <div class="summary-item hidden" id="rowPayout">
@@ -262,8 +263,9 @@
                         <button id="btnCalcExtend" class="btn btn-calc" style="margin-top: 0;">Calculate Extension</button>
                     </div>
                 </div>
+
                 <p id="disclaimer">
-                    * Interest calculated based on official Department of Posts rules (5th/10th day logic applies). Actual results may vary.
+                    * Results calculated based on official Department of Posts rules. Actual values may vary.
                 </p>
                 
                 <div class="footer-brand">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
@@ -292,4 +294,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-    </html>
+</html>

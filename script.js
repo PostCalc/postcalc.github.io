@@ -209,6 +209,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- CUSTOM DROPDOWN LOGIC ---
+   // --- 🚀 NEW: MAIN CATEGORY TOGGLE LOGIC ---
+    const categoryBtns = document.querySelectorAll('#mainCategoryToggle .toggle-btn');
+    const dropdownItems = document.querySelectorAll('#dropdownList li');
+    const ddHeaderText = document.querySelector('#dropdownHeader span');
+
+    if (categoryBtns.length > 0) {
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // 1. Update UI active states
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const selectedCategory = e.target.getAttribute('data-cat');
+
+                // 2. Hide/Show items based on category
+                dropdownItems.forEach(item => {
+                    if (item.getAttribute('data-category') === selectedCategory) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                // 3. Reset the dropdown selection & UI cleanly
+                if (realSelector) {
+                    realSelector.value = ''; 
+                    realSelector.dispatchEvent(new Event('change'));
+                }
+                dropdownItems.forEach(i => i.classList.remove('selected'));
+                
+                if (selectedCategory === 'insurance') {
+                    ddHeaderText.innerHTML = "-- Choose Insurance Plan --";
+                } else {
+                    ddHeaderText.innerHTML = "-- Choose Saving Scheme --";
+                }
+            });
+        });
+                   }
+   
     const header = document.getElementById('dropdownHeader');
     const list = document.getElementById('dropdownList');
     if (header && list) {

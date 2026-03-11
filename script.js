@@ -11,19 +11,23 @@ const SCHEMES = {
     'ssa': { name: "Sukanya Samriddhi", rate: 8.2, min: 250, max: 150000, tenure: 21 },
     'nsc': { name: "NSC (VIII Issue)", rate: 7.7, min: 1000, tenure: 5 },
     'kvp': { name: "Kisan Vikas Patra", rate: 7.5, min: 1000, tenure: 9.58 },
-    'td': { name: "Time Deposit", rate: 7.5, rates: {1:6.9, 2:7.0, 3:7.1, 5:7.5}, min: 1000, tenure: 5 }
+    'td': { name: "Time Deposit", rate: 7.5, rates: {1:6.9, 2:7.0, 3:7.1, 5:7.5}, min: 1000, tenure: 5 },
+    'pli': { name: "PLI - Santosh", min: 20000, max: 5000000 },
+    'rpli': { name: "RPLI - Gram Santosh", min: 10000, max: 1000000 }
 };
 
 const SCHEME_RULES = {
-    'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual (Single/Joint)</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Annually)</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>10th & Last Day</b></td></tr><tr><th>Critical Rule</th><td>Deposit by the <b>10th</b> to earn interest for that month.</td></tr><tr><th>Penalty</th><td>₹50 deducted if balance < ₹500</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Exempt up to ₹10,000 (u/s 80TTA)</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
-    'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td><b>Quarterly Compounding</b></td></tr><tr><th>Calc Rule</th><td>Deposit by 15th (if opened 1st-15th) or Last Day</td></tr><tr><th>Trick / Hack</th><td>Pay 6-12 months in advance to earn a <b>Rebate</b>.</td></tr><tr><th>Penalty</th><td>₹1 per ₹100 for missed installment</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest is Taxable. No TDS.</td></tr><tr><th>Loan Facility</th><td>Available after 1 Year (50% of balance)</td></tr></table>`,
-    'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years (Deposit for 15 Yrs)</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10 Years)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Yearly Compounding</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>5th & Last Day</b></td></tr><tr><th>Critical Rule</th><td>Deposit by <b>5th</b> to earn interest for that month.</td></tr><tr><th>Penalty</th><td>₹50 per year for default</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td><b>EEE:</b> Exempt-Exempt-Exempt (Tax Free)</td></tr><tr><th>Loan Facility</th><td>No Loan. Partial withdrawal after age 18.</td></tr></table>`,
-    'ppf': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.1% per annum</td></tr><tr><th>Tenure</th><td>15 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Yearly Compounding</td></tr><tr><th>Calc Date</th><td>Lowest balance between <b>5th & Last Day</b></td></tr><tr><th>Trick / Hack</th><td>Deposit lumpsum by <b>April 5th</b> for max return.</td></tr><tr><th>Penalty</th><td>₹50 per year for default</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td><b>EEE:</b> Completely Tax Free (80C)</td></tr><tr><th>Loan Facility</th><td>Available from 3rd to 6th Financial Year</td></tr></table>`,
-    'mis': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.4% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹9L (Single) / ₹15L (Joint)</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Monthly)</td></tr><tr><th>Pay Details</th><td>Auto-credit to Savings Account</td></tr><tr><th>Trick / Hack</th><td>Link to SB to earn 4% on idle interest.</td></tr><tr><th>Penalty</th><td>2% (1-3 yrs), 1% (3-5 yrs) on closure.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest is Taxable.</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
-    'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td><b>Quarterly</b></td></tr><tr><th>Pay Details</th><td>Calculated quarterly, <b>Paid Annually</b>.</td></tr><tr><th>Trick / Hack</th><td>5-Year TD gives 80C Tax Benefit.</td></tr><tr><th>Penalty</th><td>Interest reduced to SB rate if closed early.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable. 5Y TD Principal is 80C deductible.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged)</td></tr></table>`,
-    'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+ (55+ for VRS)</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Simple Interest (Paid Quarterly)</td></tr><tr><th>Pay Details</th><td>Paid April 1, July 1, Oct 1, Jan 1</td></tr><tr><th>Trick / Hack</th><td>Reinvest quarterly payout into RD.</td></tr><tr><th>Penalty</th><td>1.5% (1-2 yrs), 1% (>2 yrs) deduction.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Taxable (TDS if interest > ₹50k/yr).</td></tr><tr><th>Loan Facility</th><td>Not Available</td></tr></table>`,
-    'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Paid at Maturity (Deemed Reinvested)</td></tr><tr><th>Rule</th><td>Interest is added back to principal yearly.</td></tr><tr><th>Penalty</th><td>Premature closure only in specific cases.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Interest deemed reinvested (80C eligible).</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`,
-    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months (9 Years 7 Months)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>Compounding</th><td>Annually</td></tr><tr><th>Pay Details</th><td>Doubles your money at maturity</td></tr><tr><th>Rule</th><td>Fixed tenure based on interest rate.</td></tr><tr><th>Penalty</th><td>Lock-in period of 2.5 Years.</td></tr></table><div class="info-section-title">Tax & Loan</div><table class="info-table"><tr><th>Tax</th><td>Fully Taxable. No 80C benefit.</td></tr><tr><th>Loan Facility</th><td><b>Yes</b> (Can be pledged to banks)</td></tr></table>`
+    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block.</td></tr></table>`,
+    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block.</td></tr></table>`,
+    'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
+    'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
+    'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
+    'ppf': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.1% per annum</td></tr><tr><th>Tenure</th><td>15 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
+    'mis': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.4% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹9L (Single)/₹15L (Joint)</td></tr></table>`,
+    'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
+    'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+ (55+ for VRS)</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table>`,
+    'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
+    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`
 };
 
 function numToWord(val, divId) {
@@ -131,21 +135,19 @@ const Engines = {
                 let quarters = (months - m + 1) / 3;
                 mat += dep * Math.pow(1 + qRate, quarters);
             }
-            return mat; // Keep exact precision until final rounding
+            return mat; 
         }
 
         let rows = [];
         let totalDeposit = 0;
         let finalMaturity = 0;
 
-        // 1. Calculate and add the Base 5-Year Summary Row
         let baseMaturity = Math.round(getRDMaturity(p, 60, quarterlyRate));
         let baseDeposit = p * 60;
         rows.push({ lbl: `Base (1-5 Yrs)`, op: 0, dep: baseDeposit, int: baseMaturity - baseDeposit, cl: baseMaturity });
 
         let previousMaturity = baseMaturity;
 
-        // 2. Loop through and create specific rows for Year 6, 7, 8, etc.
         if (type === "with") {
             totalDeposit = baseDeposit;
             for (let y = 1; y <= extYrs; y++) {
@@ -156,13 +158,7 @@ const Engines = {
                 totalDeposit += yearlyDep;
                 let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
                 
-                rows.push({ 
-                    lbl: `Year ${5 + y}`, 
-                    op: previousMaturity, 
-                    dep: yearlyDep, 
-                    int: yearlyInt, 
-                    cl: currentMaturity 
-                });
+                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: yearlyDep, int: yearlyInt, cl: currentMaturity });
                 previousMaturity = currentMaturity;
             }
             finalMaturity = previousMaturity;
@@ -170,17 +166,10 @@ const Engines = {
         } else {
             totalDeposit = baseDeposit;
             for (let y = 1; y <= extYrs; y++) {
-                // Compounds 4 quarters per year
                 let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
                 let yearlyInt = currentMaturity - previousMaturity;
                 
-                rows.push({ 
-                    lbl: `Year ${5 + y}`, 
-                    op: previousMaturity, 
-                    dep: 0, 
-                    int: yearlyInt, 
-                    cl: currentMaturity 
-                });
+                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: 0, int: yearlyInt, cl: currentMaturity });
                 previousMaturity = currentMaturity;
             }
             finalMaturity = previousMaturity;
@@ -188,7 +177,6 @@ const Engines = {
 
         return { dep: totalDeposit, int: finalMaturity - totalDeposit, mat: finalMaturity, date: matDate, rows: rows, type: 'compound' };
     }
-    
 };
 /* =========================================
    PART 2: UI CONTROLLER & RENDER LOGIC
@@ -200,16 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
 
     const realSelector = document.getElementById('schemeSelector');
-    
     if(realSelector) {
         realSelector.addEventListener('change', (e) => { 
             toggleInputs(); 
             updateInfoContent(e.target.value); 
         });
     }
-    
-    // --- CUSTOM DROPDOWN LOGIC ---
-   // --- 🚀 NEW: MAIN CATEGORY TOGGLE LOGIC ---
+
+    // --- 🚀 MAIN CATEGORY TOGGLE LOGIC ---
     const categoryBtns = document.querySelectorAll('#mainCategoryToggle .toggle-btn');
     const dropdownItems = document.querySelectorAll('#dropdownList li');
     const ddHeaderText = document.querySelector('#dropdownHeader span');
@@ -232,10 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // 3. Reset the dropdown selection & UI cleanly
+                // 3. Reset the dropdown selection & trigger UI cleanup
                 if (realSelector) {
                     realSelector.value = ''; 
-                    realSelector.dispatchEvent(new Event('change'));
+                    realSelector.dispatchEvent(new Event('change')); // This fires the updated toggleInputs()
                 }
                 dropdownItems.forEach(i => i.classList.remove('selected'));
                 
@@ -246,23 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-                   }
-   
+    }
+    
+    // --- CUSTOM DROPDOWN LOGIC ---
     const header = document.getElementById('dropdownHeader');
     const list = document.getElementById('dropdownList');
     if (header && list) {
-        const items = list.querySelectorAll('li');
-        const headerText = header.querySelector('span');
-
         header.addEventListener('click', () => {
             list.classList.toggle('open');
             header.classList.toggle('active');
         });
 
-        items.forEach(item => {
+        dropdownItems.forEach(item => {
             item.addEventListener('click', () => {
-                headerText.innerHTML = item.innerHTML;
-                items.forEach(i => i.classList.remove('selected'));
+                ddHeaderText.innerHTML = item.innerHTML;
+                dropdownItems.forEach(i => i.classList.remove('selected'));
                 item.classList.add('selected');
                 list.classList.remove('open');
                 header.classList.remove('active');
@@ -301,38 +285,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnShare = document.getElementById('btnShare');
     if(btnShare) btnShare.addEventListener('click', captureAndShare);
 
-    // --- NEW: RD EXTENSION INLINE LOGIC ---
     const btnShowExt = document.getElementById('btnShowExtend');
     if(btnShowExt) {
         btnShowExt.addEventListener('click', () => {
-            btnShowExt.classList.add('hidden'); // Hide the button
-            document.getElementById('rdExtendInputs').classList.remove('hidden'); // Show the inputs
+            btnShowExt.classList.add('hidden'); 
+            document.getElementById('rdExtendInputs').classList.remove('hidden'); 
         });
     }
 
     const btnCalcExt = document.getElementById('btnCalcExtend');
     if(btnCalcExt) {
         btnCalcExt.addEventListener('click', () => {
-            // Grab the original RD deposit and date directly from the main inputs
             let p = getVal('rdDeposit'); 
             if (p < 100) return showWarn("Minimum deposit is ₹100");
-            
             const dStr = document.getElementById('dateOpen').value;
             const d = dStr ? new Date(dStr) : new Date();
-            
-            // Grab the specific Extension Inputs
             let extRate = getVal('rdExtRate') || 6.7;
             let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
             let extType = document.getElementById('rdExtType').value || 'with';
             
             hideWarn();
-            
-            // Fire the extension engine
             let res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
-            
-            // Change the title to indicate it's an extension
             document.getElementById('printSchemeName').innerText = "RD (Extension)";
-            
             if(res) renderSimple(res);
         });
     }
@@ -353,13 +327,22 @@ function updateInfoContent(scheme) {
     container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>";
 }
 
+// 🚀 CRITICAL FIX: Aggressively wipe the screen if no scheme is selected (e.g. on Tab switch)
 function toggleInputs() {
     const s = document.getElementById('schemeSelector').value; 
-    if (!s) return;
     
+    // Always hide everything first to prevent ghosting
     document.querySelectorAll('.input-group').forEach(el => el.classList.add('hidden'));
     document.getElementById('resultsCard').classList.add('hidden');
     
+    if (!s) {
+        // If empty (tab switched), hide the main card and info button completely
+        document.getElementById('inputCard').classList.add('hidden');
+        document.getElementById('btnInfo').classList.add('hidden');
+        return;
+    }
+    
+    // If a scheme is selected, show the card and relevant inputs
     document.getElementById('inputCard').classList.remove('hidden');
     document.getElementById('btnInfo').classList.remove('hidden');
 
@@ -403,7 +386,7 @@ function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-       }
+               }
 /* =========================================
    PART 3: CALCULATION EXECUTION
    ========================================= */
@@ -436,52 +419,37 @@ function handleCalculate() {
         const limit = (type === 'single') ? 900000 : 1500000;
         if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
     }
+    else if (s === 'pli') { p = getVal('pliDeposit'); }
+    else if (s === 'rpli') { p = getVal('rpliDeposit'); }
     else { 
         let id = s + 'Deposit';
         p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
     }
 
-    if (p < conf.min) return showWarn(`Minimum deposit is ₹${conf.min}`);
+    if (p < conf.min) return showWarn(`Minimum limit is ₹${conf.min}`);
     if (s !== 'mis' && conf.max && p > conf.max) return showWarn(`Maximum limit is ₹${conf.max}`);
 
     let res = null;
     
-    if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
-    else if (s === 'ppf') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ppf', mode);
-    else if (s === 'ssa') {
-        let currentAge = parseInt(document.getElementById('ssaAge').value) || 0;
-        res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, currentAge);
-    }
-    else if (s === 'rd') res = Engines.calcRD(p, conf.rate, d);
-    else if (s === 'mis') res = Engines.calcPayout(p, conf.rate, 5, 12, d);
-    else if (s === 'scss') res = Engines.calcPayout(p, conf.rate, 5, 4, d);
-    else if (s === 'td') {
-        let t = parseInt(document.getElementById('tdTenure').value);
-        res = Engines.calcTD(p, conf.rates[t], t, d);
-    }
-    else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
-    else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
-
-   else if (s === 'pli' || s === 'rpli') {
+    // 🚀 ROUTE TO PLI/RPLI GRID ENGINE
+    if (s === 'pli' || s === 'rpli') {
         let entryAge = parseInt(document.getElementById(s + 'EntryAge').value);
-        if (entryAge < 19 || entryAge > 55) return showWarn("Age must be between 19 and 55.");
-        if (s === 'pli' && p < 20000) return showWarn("Minimum PLI Sum Assured is ₹20,000.");
-        if (s === 'pli' && p > 5000000) return showWarn("Maximum PLI Sum Assured is ₹50 Lakhs.");
-        if (s === 'rpli' && p < 10000) return showWarn("Minimum RPLI Sum Assured is ₹10,000.");
-        if (s === 'rpli' && p > 1000000) return showWarn("Maximum RPLI Sum Assured is ₹10 Lakhs.");
+        if (!entryAge || entryAge < 19 || entryAge > 55) return showWarn("Age must be between 19 and 55.");
         
         let gridData = generateInsuranceGrid(p, entryAge, s, d);
-        if (gridData.length === 0) return showWarn("No actuarial rates available for this age.");
+        if (gridData.length === 0) return showWarn("No actuarial rates available for this age combination.");
         
-        // Custom Render for Grid Table
+        document.getElementById('printSchemeSub').innerText = "Endowment Assurance Quote";
         document.getElementById('resTotalDep').innerText = fmt(p);
         document.getElementById('resTotalInt').innerText = "Varies by Term";
-        document.getElementById('resMaturity').innerText = "See Table Below";
+        document.getElementById('resMaturity').innerText = "See Grid Below";
         document.getElementById('resMatDate').innerText = "-";
         document.getElementById('rowPayout').classList.add('hidden');
         
         document.getElementById('lblTotalDep').innerText = "Sum Assured";
         document.getElementById('lblTotalInt').innerText = "Bonus Status";
+        document.getElementById('lblMaturity').innerText = "Maturity Estimate";
+        document.getElementById('lblMatDate').innerText = "Maturity Event";
         
         let head = document.getElementById('resHead');
         head.innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net Prem.</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
@@ -499,24 +467,50 @@ function handleCalculate() {
             </tr>`;
         }).join('');
         
+        const extendSection = document.getElementById('rdExtendSection');
+        if (extendSection) extendSection.classList.add('hidden');
+        
         document.getElementById('resultsCard').classList.remove('hidden');
         document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
-        return; // Halt execution so it doesn't trigger the standard renderer
-   }
-    // 🚀 NEW: Control the visibility of the "Extend" section based on scheme
+        return; // Halt here so it doesn't trigger Savings Scheme render
+    }
+
+    if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
+    else if (s === 'ppf') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ppf', mode);
+    else if (s === 'ssa') {
+        let currentAge = parseInt(document.getElementById('ssaAge').value) || 0;
+        res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, currentAge);
+    }
+    else if (s === 'rd') res = Engines.calcRD(p, conf.rate, d);
+    else if (s === 'mis') res = Engines.calcPayout(p, conf.rate, 5, 12, d);
+    else if (s === 'scss') res = Engines.calcPayout(p, conf.rate, 5, 4, d);
+    else if (s === 'td') {
+        let t = parseInt(document.getElementById('tdTenure').value);
+        res = Engines.calcTD(p, conf.rates[t], t, d);
+    }
+    else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
+    else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
+    
     const extendSection = document.getElementById('rdExtendSection');
     const extendInputs = document.getElementById('rdExtendInputs');
     const btnShowExt = document.getElementById('btnShowExtend');
     
     if (extendSection && btnShowExt && extendInputs) {
         if (s === 'rd') {
-            extendSection.classList.remove('hidden'); // Show the wrapper
-            btnShowExt.classList.remove('hidden');    // Show the button
-            extendInputs.classList.add('hidden');     // Hide the inputs (until button is clicked)
+            extendSection.classList.remove('hidden'); 
+            btnShowExt.classList.remove('hidden');    
+            extendInputs.classList.add('hidden');     
         } else {
-            extendSection.classList.add('hidden');    // Hide completely for non-RD schemes
+            extendSection.classList.add('hidden');    
         }
     }
+
+    document.getElementById('printSchemeSub').innerText = "Interest Estimate Statement";
+    document.getElementById('lblTotalDep').innerText = "Total Deposit";
+    document.getElementById('lblTotalInt').innerText = "Total Interest";
+    document.getElementById('lblMaturity').innerText = "Maturity Amount";
+    document.getElementById('lblMatDate').innerText = "Maturity Date";
+    document.getElementById('lblPayout').innerText = "Regular Payout";
     
     if(res) renderSimple(res);
 }
@@ -575,7 +569,6 @@ function captureAndShare() {
         clone.querySelector('.download-actions').style.display = 'none';
     }
     
-    // Hide the inline RD extension UI in the screenshot
     if(clone.querySelector('#rdExtendSection')) {
         clone.querySelector('#rdExtendSection').style.display = 'none';
     }
@@ -665,7 +658,6 @@ function hideWarn() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
 
-    // Automatically reload the page once a new update is downloaded
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -673,7 +665,7 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
         }
     });
-       }
+}
 
 /* =========================================
    PART 5: ISOLATED PLI / RPLI ACTUARIAL ENGINE
@@ -723,15 +715,13 @@ function generateInsuranceGrid(sa, entryAge, type, d) {
     const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
     let rows = [];
     
-    // Actuarial Variables
     let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
     let baseline = type === 'pli' ? 5000 : 1000;
     let bonusRate = type === 'pli' ? 52 : 48;
     
-    // GST Setup
-    let gstRate = 0.045; // Legacy first year
+    let gstRate = 0.045; 
     const reformDate = new Date("2025-09-22");
-    if (d >= reformDate) gstRate = 0.0; // Post reform exemption
+    if (d >= reformDate) gstRate = 0.0; 
 
     permittedMaturityAges.forEach(matAge => {
         let term = matAge - entryAge;
@@ -740,18 +730,14 @@ function generateInsuranceGrid(sa, entryAge, type, d) {
             let tableRate = matrix[entryAge][matAge];
             let monthlyGross = (sa / baseline) * tableRate;
             
-            // HSA Rebate
             let hsaRebate = Math.floor(sa / 20000) * 1;
             let intermediatePremium = monthlyGross - hsaRebate;
             
-            // Statutory Rounding
             let basePremiumRounded = Math.ceil(intermediatePremium);
             
-            // Tax Calculation
             let taxAmt = Math.round(basePremiumRounded * gstRate);
             let netPremium = basePremiumRounded + taxAmt;
             
-            // Bonus Engine
             let reversionaryBonus = (sa / 1000) * bonusRate * term;
             let terminalBonus = 0;
             if (term >= 20) {
@@ -774,4 +760,4 @@ function generateInsuranceGrid(sa, entryAge, type, d) {
     });
     
     return rows;
-                                }
+}

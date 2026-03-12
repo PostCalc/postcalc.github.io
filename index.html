@@ -73,6 +73,7 @@
                     <span>ℹ️ View Scheme Details</span>
                 </button>
             </div>
+
             <div class="card hidden" id="inputCard">
                 <h3>Enter Details</h3>
                 <div style="margin-bottom: 20px;">
@@ -97,10 +98,17 @@
 
                     <div id="input-pli" class="input-group hidden">
                         <label>Policy Sum Assured (₹)</label>
-                        <input type="number" id="pliDeposit" value="500000" step="10000" oninput="numToWord(this.value, 'word-pli')">
-                        <div id="word-pli" class="word-display">Five Lakh Rupees Only</div>
+                        <input type="number" id="pliDeposit" value="150000" step="10000" oninput="numToWord(this.value, 'word-pli')">
+                        <div id="word-pli" class="word-display">One Lakh Fifty Thousand Rupees Only</div>
                         <label>Age on Next Birthday (19 - 55)</label>
-                        <input type="number" id="pliEntryAge" value="27" min="19" max="55">
+                        <input type="number" id="pliEntryAge" value="26" min="19" max="55">
+                        <label>Premium Payment Mode</label>
+                        <select id="pliPaymentMode" class="native-select">
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="half">Half-Yearly (1% Discount)</option>
+                            <option value="yearly">Yearly (2% Discount)</option>
+                        </select>
                     </div>
 
                     <div id="input-rpli" class="input-group hidden">
@@ -109,6 +117,13 @@
                         <div id="word-rpli" class="word-display">One Lakh Rupees Only</div>
                         <label>Age on Next Birthday (19 - 55)</label>
                         <input type="number" id="rpliEntryAge" value="27" min="19" max="55">
+                        <label>Premium Payment Mode</label>
+                        <select id="rpliPaymentMode" class="native-select">
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="half">Half-Yearly (1% Discount)</option>
+                            <option value="yearly">Yearly (2% Discount)</option>
+                        </select>
                     </div>
                     <div id="input-ssa" class="input-group hidden" data-mode="annual">
                         <label>Girl's Age (Years)</label>
@@ -193,8 +208,9 @@
                 
                 <div id="warningBox" class="warning-box"></div>
                 <button class="btn btn-calc" id="btnCalculate">Calculate</button>
-    </div>
-    <div class="card hidden" id="resultsCard">
+            </div>
+
+            <div class="card hidden" id="resultsCard">
                 <div class="statement-header">
                     <div class="st-left">
                         <h2 id="printSchemeName">Scheme Name</h2>
@@ -294,4 +310,4 @@
     </div>
     <script src="script.js"></script>
 </body>
-</html>
+    </html>

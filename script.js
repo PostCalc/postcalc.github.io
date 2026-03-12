@@ -1,5 +1,5 @@
 /* =========================================
-   PART 1: CONFIGURATION & RULES
+   PART 1: CONFIGURATION, DATA & MATH ENGINES
    ========================================= */
 
 const SCHEMES = {
@@ -17,8 +17,8 @@ const SCHEMES = {
 };
 
 const SCHEME_RULES = {
-    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
-    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
+    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
+    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
     'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
     'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
     'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
@@ -50,6 +50,128 @@ function numToWord(val, divId) {
     if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
     if (n > 0) { str += convert(n); }
     div.innerText = str + " Rupees Only";
+}
+
+// 🚀 EXACT 10K BASELINE PLI TABLE
+const PLI_TABLE = {
+    19: {35:52, 40:38, 45:30, 50:24, 55:20, 58:18, 60:18},
+    20: {35:54, 40:40, 45:32, 50:26, 55:20, 58:20, 60:18},
+    21: {35:58, 40:42, 45:32, 50:26, 55:22, 58:20, 60:18},
+    22: {35:64, 40:44, 45:34, 50:28, 55:22, 58:20, 60:20},
+    23: {35:70, 40:48, 45:36, 50:28, 55:24, 58:20, 60:20},
+    24: {35:76, 40:52, 45:38, 50:30, 55:24, 58:22, 60:20},
+    25: {35:84, 40:54, 45:40, 50:32, 55:26, 58:22, 60:22},
+    26: {35:94, 40:58, 45:42, 50:32, 55:26, 58:24, 60:22},
+    27: {35:106, 40:64, 45:44, 50:34, 55:28, 58:24, 60:24},
+    28: {35:122, 40:70, 45:48, 50:36, 55:28, 58:26, 60:24},
+    29: {35:144, 40:76, 45:52, 50:38, 55:30, 58:26, 60:26},
+    30: {35:172, 40:84, 45:56, 50:40, 55:32, 58:28, 60:26},
+    31: {40:96, 45:60, 50:44, 55:34, 58:30, 60:28},
+    32: {40:106, 45:64, 50:46, 55:34, 58:30, 60:28},
+    33: {40:122, 45:70, 50:48, 55:36, 58:32, 60:28},
+    34: {40:144, 45:76, 50:52, 55:38, 58:34, 60:30},
+    35: {40:172, 45:84, 50:56, 55:40, 58:34, 60:32},
+    36: {45:94, 50:60, 55:44, 58:38, 60:34},
+    37: {45:106, 50:64, 55:46, 58:40, 60:36},
+    38: {45:122, 50:70, 55:50, 58:42, 60:38},
+    39: {45:144, 50:78, 55:54, 58:44, 60:40},
+    40: {45:174, 50:86, 55:56, 58:46, 60:42},
+    41: {50:96, 55:60, 58:50, 60:44},
+    42: {50:108, 55:66, 58:54, 60:48},
+    43: {50:124, 55:72, 58:58, 60:50},
+    44: {50:144, 55:78, 58:62, 60:54},
+    45: {50:174, 55:86, 58:66, 60:58},
+    46: {55:96, 58:72, 60:62},
+    47: {55:110, 58:80, 60:68},
+    48: {55:126, 58:88, 60:74},
+    49: {55:146, 58:98, 60:80},
+    50: {55:176, 58:110, 60:88},
+    51: {58:126, 60:98},
+    52: {58:150, 60:118},
+    53: {58:178, 60:132},
+    54: {60:152},
+    55: {60:178}
+};
+
+const RPLI_TABLE = {
+    19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75},
+    20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80},
+    21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85},
+    22: {35:6.35, 40:4.45, 45:13.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
+    23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
+    24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
+    25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
+    26: {35:9.45, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20},
+    27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30},
+    28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40},
+    29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50},
+    30: {35:17.40, 40:8.45, 45:5.45, 50:4.00, 55:3.15, 58:2.75, 60:2.60},
+    31: {40:9.45, 45:5.90, 50:4.25, 55:3.30, 58:2.90, 60:2.70},
+    32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80},
+    33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95},
+    34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
+    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
+};
+
+// 🚀 ACCURATE GRID GENERATOR
+function generateInsuranceGrid(sa, entryAge, type, d, mode) {
+    const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
+    let rows = [];
+    
+    let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
+    let baseline = type === 'pli' ? 10000 : 1000;
+    let bonusRate = type === 'pli' ? 52 : 48;
+    
+    let gstRate = 0.045; 
+    const reformDate = new Date("2025-09-22");
+    if (d >= reformDate) gstRate = 0.0; 
+
+    let n = 1;
+    let discountPct = 0;
+    if (mode === 'yearly') { n = 12; discountPct = 0.02; }
+    else if (mode === 'half') { n = 6; discountPct = 0.01; }
+    else if (mode === 'quarterly') { n = 3; discountPct = 0; }
+
+    permittedMaturityAges.forEach(matAge => {
+        let term = matAge - entryAge;
+        if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
+            
+            let tableRate = matrix[entryAge][matAge];
+            let monthlyGross = (sa / baseline) * tableRate;
+            
+            let displayRebate = Math.floor(sa / 20000) * 1;
+            let actualRebate = Math.ceil(sa / 20000) * 1; // Used for calculation
+            
+            let intermediatePremium = monthlyGross - actualRebate;
+            let baseMonthlyRounded = Math.ceil(intermediatePremium);
+            
+            let modeGross = baseMonthlyRounded * n;
+            let modeDiscount = Math.round(modeGross * discountPct);
+            let finalPreTax = modeGross - modeDiscount;
+            
+            let taxAmt = Math.round(finalPreTax * gstRate);
+            let netPremium = finalPreTax + taxAmt;
+            
+            let reversionaryBonus = (sa / 1000) * bonusRate * term;
+            let totalBonus = reversionaryBonus; 
+            let finalMaturity = sa + totalBonus;
+
+            let displayPrem = Math.round(monthlyGross) * n;
+            let displayReb = displayRebate * n;
+
+            rows.push({
+                matAge: matAge,
+                duration: term,
+                premium: displayPrem,
+                rebate: displayReb,
+                tax: taxAmt,
+                net: netPremium,
+                bonus: totalBonus,
+                matAmt: finalMaturity
+            });
+        }
+    });
+    return rows;
 }
 
 const Engines = {
@@ -176,7 +298,7 @@ const Engines = {
     }
 };
 /* =========================================
-   PART 2: UI CONTROLLER & RENDER LOGIC
+   PART 2: UI SETUP & EVENT LISTENERS
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -374,9 +496,9 @@ function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-                                    }
+}
 /* =========================================
-   PART 3: CALCULATION EXECUTION
+   PART 3: CALCULATION & OUTPUT LOGIC
    ========================================= */
 
 function handleCalculate() {
@@ -421,9 +543,10 @@ function handleCalculate() {
     
     if (s === 'pli' || s === 'rpli') {
         let entryAge = parseInt(document.getElementById(s + 'EntryAge').value);
+        let pMode = document.getElementById(s + 'PaymentMode').value;
         if (!entryAge || entryAge < 19 || entryAge > 55) return showWarn("Age must be between 19 and 55.");
         
-        let gridData = generateInsuranceGrid(p, entryAge, s, d);
+        let gridData = generateInsuranceGrid(p, entryAge, s, d, pMode);
         if (gridData.length === 0) return showWarn("No actuarial rates available for this age combination.");
         
         document.getElementById('printSchemeSub').innerText = "Endowment Assurance Quote";
@@ -439,7 +562,8 @@ function handleCalculate() {
         document.getElementById('lblMatDate').innerText = "Maturity Event";
         
         let head = document.getElementById('resHead');
-        head.innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net Prem.</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
+        let modeLabel = (pMode === 'yearly') ? 'Yearly' : (pMode === 'half') ? 'Half-Yr' : (pMode === 'quarterly') ? 'Qtrly' : 'Monthly';
+        head.innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net ${modeLabel}</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
         
         document.getElementById('resBody').innerHTML = gridData.map(r => {
             return `<tr>
@@ -638,10 +762,6 @@ function hideWarn() {
     document.getElementById('warningBox').style.display = 'none'; 
 }
 
-/* =========================================
-   PART 4: SILENT AUTO-UPDATE LOGIC
-   ========================================= */
-
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
     let refreshing = false;
@@ -651,97 +771,4 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
         }
     });
-}
-
-/* =========================================
-   PART 5: ISOLATED PLI / RPLI ACTUARIAL ENGINE
-   ========================================= */
-
-const PLI_TABLE = {
-    19: {35:26, 40:19, 45:15, 50:12, 55:10, 58:9, 60:9},
-    20: {35:27, 40:20, 45:16, 50:13, 55:10, 58:10, 60:9},
-    21: {35:29, 40:21, 45:16, 50:13, 55:11, 58:10, 60:9},
-    22: {35:32, 40:22, 45:17, 50:14, 55:11, 58:10, 60:10},
-    23: {35:35, 40:24, 45:18, 50:14, 55:12, 58:11, 60:10},
-    24: {35:39, 40:25, 45:19, 50:15, 55:12, 58:11, 60:11},
-    25: {35:45, 40:27, 45:20, 50:16, 55:13, 58:12, 60:11},
-    26: {35:52, 40:30, 45:21, 50:16, 55:14, 58:12, 60:12},
-    27: {35:63, 40:32, 45:23, 50:17, 55:14, 58:13, 60:12},
-    28: {35:78, 40:35, 45:24, 50:18, 55:15, 58:14, 60:13},
-    29: {35:104, 40:39, 45:26, 50:19, 55:16, 58:14, 60:13},
-    30: {35:155, 40:44, 45:28, 50:20, 55:17, 58:15, 60:14},
-    31: {40:49, 45:30, 50:21, 55:17, 58:16, 60:15},
-    32: {40:56, 45:32, 50:23, 55:18, 58:16, 60:15},
-    33: {40:66, 45:35, 50:24, 55:19, 58:17, 60:16},
-    34: {40:180, 45:38, 50:26, 55:20, 58:18, 60:17}, 
-    35: {40:102, 45:42, 50:27, 55:21, 58:19, 60:18}
-};
-
-const RPLI_TABLE = {
-    19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75},
-    20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80},
-    21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85},
-    22: {35:6.35, 40:4.45, 45:13.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
-    23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
-    24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
-    25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
-    26: {35:9.45, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20},
-    27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30},
-    28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40},
-    29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50},
-    30: {35:17.40, 40:8.45, 45:5.45, 50:4.00, 55:3.15, 58:2.75, 60:2.60},
-    31: {40:9.45, 45:5.90, 50:4.25, 55:3.30, 58:2.90, 60:2.70},
-    32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80},
-    33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95},
-    34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
-    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
-};
-
-function generateInsuranceGrid(sa, entryAge, type, d) {
-    const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
-    let rows = [];
-    
-    let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
-    let baseline = type === 'pli' ? 5000 : 1000;
-    let bonusRate = type === 'pli' ? 52 : 48;
-    
-    let gstRate = 0.045; 
-    const reformDate = new Date("2025-09-22");
-    if (d >= reformDate) gstRate = 0.0; 
-
-    permittedMaturityAges.forEach(matAge => {
-        let term = matAge - entryAge;
-        if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
-            
-            let tableRate = matrix[entryAge][matAge];
-            let monthlyGross = (sa / baseline) * tableRate;
-            
-            // 🚀 FIX: Official app calculates rebate per 20k "or part thereof" (using ceil)
-            let hsaRebate = Math.ceil(sa / 20000) * 1;
-            let intermediatePremium = monthlyGross - hsaRebate;
-            
-            let basePremiumRounded = Math.ceil(intermediatePremium);
-            let taxAmt = Math.round(basePremiumRounded * gstRate);
-            let netPremium = basePremiumRounded + taxAmt;
-            
-            // 🚀 FIX: Official basic quote grids exclude Terminal Bonus
-            let reversionaryBonus = (sa / 1000) * bonusRate * term;
-            let totalBonus = reversionaryBonus; 
-            let finalMaturity = sa + totalBonus;
-
-            rows.push({
-                matAge: matAge,
-                duration: term,
-                // 🚀 FIX: Display the true gross premium in the column, not intermediate
-                premium: Math.round(monthlyGross), 
-                rebate: hsaRebate,
-                tax: taxAmt,
-                net: netPremium,
-                bonus: totalBonus,
-                matAmt: finalMaturity
-            });
         }
-    });
-    
-    return rows;
-           }

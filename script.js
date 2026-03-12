@@ -1,5 +1,5 @@
 /* =========================================
-   PART 1: CONFIGURATION, DATA & MATH ENGINES
+   PART 1: CONFIGURATION & RULES
    ========================================= */
 
 const SCHEMES = {
@@ -52,7 +52,6 @@ function numToWord(val, divId) {
     div.innerText = str + " Rupees Only";
 }
 
-// 🚀 EXACT 10K BASELINE PLI TABLE
 const PLI_TABLE = {
     19: {35:52, 40:38, 45:30, 50:24, 55:20, 58:18, 60:18},
     20: {35:54, 40:40, 45:32, 50:26, 55:20, 58:20, 60:18},
@@ -113,7 +112,6 @@ const RPLI_TABLE = {
     35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
 };
 
-// 🚀 ACCURATE GRID GENERATOR
 function generateInsuranceGrid(sa, entryAge, type, d, mode) {
     const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
     let rows = [];
@@ -130,7 +128,7 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
     let discountPct = 0;
     if (mode === 'yearly') { n = 12; discountPct = 0.02; }
     else if (mode === 'half') { n = 6; discountPct = 0.01; }
-    else if (mode === 'quarterly') { n = 3; discountPct = 0; }
+    else if (mode === 'quarterly') { n = 3; discountPct = type === 'rpli' ? 0.005 : 0; }
 
     permittedMaturityAges.forEach(matAge => {
         let term = matAge - entryAge;
@@ -139,31 +137,33 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
             let tableRate = matrix[entryAge][matAge];
             let monthlyGross = (sa / baseline) * tableRate;
             
-            let displayRebate = Math.floor(sa / 20000) * 1;
-            let actualRebate = Math.ceil(sa / 20000) * 1; // Used for calculation
+            let totalRebateRaw = (sa / 20000) * n;
+            let displayRebate = Math.floor(totalRebateRaw); 
+            let actualRebate = Math.ceil(totalRebateRaw); 
             
-            let intermediatePremium = monthlyGross - actualRebate;
-            let baseMonthlyRounded = Math.ceil(intermediatePremium);
+            let aggregatedGross = monthlyGross * n;
+            let finalGrossPrem = Math.round(aggregatedGross - (aggregatedGross * discountPct));
             
-            let modeGross = baseMonthlyRounded * n;
-            let modeDiscount = Math.round(modeGross * discountPct);
-            let finalPreTax = modeGross - modeDiscount;
-            
-            let taxAmt = Math.round(finalPreTax * gstRate);
-            let netPremium = finalPreTax + taxAmt;
+            // Scaled Quirk Match for Official App
+            if (type === 'pli') {
+                if (mode === 'quarterly') finalGrossPrem = Math.round(monthlyGross * 3) - Math.round((sa/150000) * 9);
+                if (mode === 'half') finalGrossPrem = Math.round(monthlyGross * 6) - Math.round((sa/150000) * 126);
+                if (mode === 'yearly') finalGrossPrem = Math.round(monthlyGross * 12) - Math.round((sa/150000) * 507);
+            }
+
+            let intermediatePremium = finalGrossPrem - actualRebate;
+            let taxAmt = Math.round(intermediatePremium * gstRate);
+            let netPremium = intermediatePremium + taxAmt;
             
             let reversionaryBonus = (sa / 1000) * bonusRate * term;
             let totalBonus = reversionaryBonus; 
             let finalMaturity = sa + totalBonus;
 
-            let displayPrem = Math.round(monthlyGross) * n;
-            let displayReb = displayRebate * n;
-
             rows.push({
                 matAge: matAge,
                 duration: term,
-                premium: displayPrem,
-                rebate: displayReb,
+                premium: finalGrossPrem,
+                rebate: displayRebate,
                 tax: taxAmt,
                 net: netPremium,
                 bonus: totalBonus,
@@ -298,7 +298,7 @@ const Engines = {
     }
 };
 /* =========================================
-   PART 2: UI SETUP & EVENT LISTENERS
+   PART 2: UI CONTROLLER & RENDER LOGIC
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -307,13 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
 
     const realSelector = document.getElementById('schemeSelector');
+    
     if(realSelector) {
         realSelector.addEventListener('change', (e) => { 
             toggleInputs(); 
             updateInfoContent(e.target.value); 
         });
     }
-
+    
     const categoryBtns = document.querySelectorAll('#mainCategoryToggle .toggle-btn');
     const dropdownItems = document.querySelectorAll('#dropdownList li');
     const ddHeaderText = document.querySelector('#dropdownHeader span');
@@ -498,7 +499,7 @@ function setMISMode(type) {
     document.getElementById('input-mis').dataset.type = type;
 }
 /* =========================================
-   PART 3: CALCULATION & OUTPUT LOGIC
+   PART 3: CALCULATION EXECUTION
    ========================================= */
 
 function handleCalculate() {
@@ -529,6 +530,9 @@ function handleCalculate() {
         const limit = (type === 'single') ? 900000 : 1500000;
         if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
     }
+    else if (s === 'rd_ext') {
+        p = getVal('rdExtDeposit');
+    }
     else if (s === 'pli') { p = getVal('pliDeposit'); }
     else if (s === 'rpli') { p = getVal('rpliDeposit'); }
     else { 
@@ -536,7 +540,7 @@ function handleCalculate() {
         p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
     }
 
-    if (p < conf.min) return showWarn(`Minimum limit is ₹${conf.min}`);
+    if (p < conf.min) return showWarn(`Minimum deposit is ₹${conf.min}`);
     if (s !== 'mis' && conf.max && p > conf.max) return showWarn(`Maximum limit is ₹${conf.max}`);
 
     let res = null;
@@ -601,6 +605,12 @@ function handleCalculate() {
     }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
+    else if (s === 'rd_ext') {
+        let extRate = getVal('rdExtRate') || 6.7;
+        let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
+        let extType = document.getElementById('rdExtType').value || 'with';
+        res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
+    }
     
     const extendSection = document.getElementById('rdExtendSection');
     const extendInputs = document.getElementById('rdExtendInputs');
@@ -762,6 +772,10 @@ function hideWarn() {
     document.getElementById('warningBox').style.display = 'none'; 
 }
 
+/* =========================================
+   PART 4: SILENT AUTO-UPDATE LOGIC
+   ========================================= */
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
     let refreshing = false;
@@ -771,4 +785,4 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
         }
     });
-        }
+}

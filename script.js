@@ -17,8 +17,8 @@ const SCHEMES = {
 };
 
 const SCHEME_RULES = {
-    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block.</td></tr></table>`,
-    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block.</td></tr></table>`,
+    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
+    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1) and 2.25% (Yr 2+).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
     'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
     'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
     'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
@@ -154,10 +154,8 @@ const Engines = {
                 let currentMonths = 60 + (y * 12);
                 let currentMaturity = Math.round(getRDMaturity(p, currentMonths, quarterlyRate));
                 let yearlyDep = p * 12;
-                
                 totalDeposit += yearlyDep;
                 let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
-                
                 rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: yearlyDep, int: yearlyInt, cl: currentMaturity });
                 previousMaturity = currentMaturity;
             }
@@ -168,7 +166,6 @@ const Engines = {
             for (let y = 1; y <= extYrs; y++) {
                 let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
                 let yearlyInt = currentMaturity - previousMaturity;
-                
                 rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: 0, int: yearlyInt, cl: currentMaturity });
                 previousMaturity = currentMaturity;
             }
@@ -195,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 🚀 MAIN CATEGORY TOGGLE LOGIC ---
     const categoryBtns = document.querySelectorAll('#mainCategoryToggle .toggle-btn');
     const dropdownItems = document.querySelectorAll('#dropdownList li');
     const ddHeaderText = document.querySelector('#dropdownHeader span');
@@ -203,13 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (categoryBtns.length > 0) {
         categoryBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // 1. Update UI active states
                 categoryBtns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 
                 const selectedCategory = e.target.getAttribute('data-cat');
 
-                // 2. Hide/Show items based on category
                 dropdownItems.forEach(item => {
                     if (item.getAttribute('data-category') === selectedCategory) {
                         item.classList.remove('hidden');
@@ -218,10 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // 3. Reset the dropdown selection & trigger UI cleanup
                 if (realSelector) {
                     realSelector.value = ''; 
-                    realSelector.dispatchEvent(new Event('change')); // This fires the updated toggleInputs()
+                    realSelector.dispatchEvent(new Event('change'));
                 }
                 dropdownItems.forEach(i => i.classList.remove('selected'));
                 
@@ -234,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- CUSTOM DROPDOWN LOGIC ---
     const header = document.getElementById('dropdownHeader');
     const list = document.getElementById('dropdownList');
     if (header && list) {
@@ -327,22 +319,18 @@ function updateInfoContent(scheme) {
     container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>";
 }
 
-// 🚀 CRITICAL FIX: Aggressively wipe the screen if no scheme is selected (e.g. on Tab switch)
 function toggleInputs() {
     const s = document.getElementById('schemeSelector').value; 
     
-    // Always hide everything first to prevent ghosting
     document.querySelectorAll('.input-group').forEach(el => el.classList.add('hidden'));
     document.getElementById('resultsCard').classList.add('hidden');
     
     if (!s) {
-        // If empty (tab switched), hide the main card and info button completely
         document.getElementById('inputCard').classList.add('hidden');
         document.getElementById('btnInfo').classList.add('hidden');
         return;
     }
     
-    // If a scheme is selected, show the card and relevant inputs
     document.getElementById('inputCard').classList.remove('hidden');
     document.getElementById('btnInfo').classList.remove('hidden');
 
@@ -386,7 +374,7 @@ function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-               }
+                                    }
 /* =========================================
    PART 3: CALCULATION EXECUTION
    ========================================= */
@@ -431,7 +419,6 @@ function handleCalculate() {
 
     let res = null;
     
-    // 🚀 ROUTE TO PLI/RPLI GRID ENGINE
     if (s === 'pli' || s === 'rpli') {
         let entryAge = parseInt(document.getElementById(s + 'EntryAge').value);
         if (!entryAge || entryAge < 19 || entryAge > 55) return showWarn("Age must be between 19 and 55.");
@@ -472,7 +459,7 @@ function handleCalculate() {
         
         document.getElementById('resultsCard').classList.remove('hidden');
         document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
-        return; // Halt here so it doesn't trigger Savings Scheme render
+        return; 
     }
 
     if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
@@ -657,7 +644,6 @@ function hideWarn() {
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
-
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -730,26 +716,24 @@ function generateInsuranceGrid(sa, entryAge, type, d) {
             let tableRate = matrix[entryAge][matAge];
             let monthlyGross = (sa / baseline) * tableRate;
             
-            let hsaRebate = Math.floor(sa / 20000) * 1;
+            // 🚀 FIX: Official app calculates rebate per 20k "or part thereof" (using ceil)
+            let hsaRebate = Math.ceil(sa / 20000) * 1;
             let intermediatePremium = monthlyGross - hsaRebate;
             
             let basePremiumRounded = Math.ceil(intermediatePremium);
-            
             let taxAmt = Math.round(basePremiumRounded * gstRate);
             let netPremium = basePremiumRounded + taxAmt;
             
+            // 🚀 FIX: Official basic quote grids exclude Terminal Bonus
             let reversionaryBonus = (sa / 1000) * bonusRate * term;
-            let terminalBonus = 0;
-            if (term >= 20) {
-                terminalBonus = Math.min(1000, (sa / 10000) * 20);
-            }
-            let totalBonus = reversionaryBonus + terminalBonus;
+            let totalBonus = reversionaryBonus; 
             let finalMaturity = sa + totalBonus;
 
             rows.push({
                 matAge: matAge,
                 duration: term,
-                premium: basePremiumRounded,
+                // 🚀 FIX: Display the true gross premium in the column, not intermediate
+                premium: Math.round(monthlyGross), 
                 rebate: hsaRebate,
                 tax: taxAmt,
                 net: netPremium,
@@ -760,4 +744,4 @@ function generateInsuranceGrid(sa, entryAge, type, d) {
     });
     
     return rows;
-}
+           }

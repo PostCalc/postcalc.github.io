@@ -100,7 +100,7 @@ const RPLI_TABLE = {
     23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
     24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
     25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
-    26: {35:9.45, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20},
+    26: {35:9.40, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20}, // Adjusted 9.45 to 9.40 per official app
     27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30},
     28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40},
     29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50},
@@ -111,194 +111,8 @@ const RPLI_TABLE = {
     34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
     35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
 };
-
-function generateInsuranceGrid(sa, entryAge, type, d, mode) {
-    const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
-    let rows = [];
-    
-    let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
-    let baseline = type === 'pli' ? 10000 : 1000;
-    let bonusRate = type === 'pli' ? 52 : 48;
-    
-    let gstRate = 0.045; 
-    const reformDate = new Date("2025-09-22");
-    if (d >= reformDate) gstRate = 0.0; 
-
-    let n = 1;
-    let discountPct = 0;
-    if (mode === 'yearly') { n = 12; discountPct = 0.02; }
-    else if (mode === 'half') { n = 6; discountPct = 0.01; }
-    else if (mode === 'quarterly') { n = 3; discountPct = type === 'rpli' ? 0.005 : 0; }
-
-    permittedMaturityAges.forEach(matAge => {
-        let term = matAge - entryAge;
-        if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
-            
-            let tableRate = matrix[entryAge][matAge];
-            let monthlyGross = (sa / baseline) * tableRate;
-            
-            let totalRebateRaw = (sa / 20000) * n;
-            let displayRebate = Math.floor(totalRebateRaw); 
-            let actualRebate = Math.ceil(totalRebateRaw); 
-            
-            let aggregatedGross = monthlyGross * n;
-            let finalGrossPrem = Math.round(aggregatedGross - (aggregatedGross * discountPct));
-            
-            // Scaled Quirk Match for Official App
-            if (type === 'pli') {
-                if (mode === 'quarterly') finalGrossPrem = Math.round(monthlyGross * 3) - Math.round((sa/150000) * 9);
-                if (mode === 'half') finalGrossPrem = Math.round(monthlyGross * 6) - Math.round((sa/150000) * 126);
-                if (mode === 'yearly') finalGrossPrem = Math.round(monthlyGross * 12) - Math.round((sa/150000) * 507);
-            }
-
-            let intermediatePremium = finalGrossPrem - actualRebate;
-            let taxAmt = Math.round(intermediatePremium * gstRate);
-            let netPremium = intermediatePremium + taxAmt;
-            
-            let reversionaryBonus = (sa / 1000) * bonusRate * term;
-            let totalBonus = reversionaryBonus; 
-            let finalMaturity = sa + totalBonus;
-
-            rows.push({
-                matAge: matAge,
-                duration: term,
-                premium: finalGrossPrem,
-                rebate: displayRebate,
-                tax: taxAmt,
-                net: netPremium,
-                bonus: totalBonus,
-                matAmt: finalMaturity
-            });
-        }
-    });
-    return rows;
-}
-
-const Engines = {
-    calcSB: (p, r, d) => {
-        let yrs = parseInt(document.getElementById('sbTenure').value) || 1;
-        let rows = []; let bal = p; let startMonth = (d.getDate() > 10) ? 1 : 0; 
-        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs);
-        for (let i = 1; i <= yrs; i++) {
-            let int = 0;
-            if (i === 1 && startMonth === 1) int = Math.round(bal * (r/100) * (11/12)); else int = Math.round(bal * (r/100));
-            let op = bal; bal += int; rows.push({ lbl: `Year ${i}`, op: op, dep: 0, int: int, cl: bal });
-        }
-        return { dep: p, int: bal - p, mat: bal, date: matDate, rows: rows, type: 'compound' };
-    },
-    calcTD: (p, r, t, d) => {
-        let ratePerQ = r / 400; let amtAfter1Year = p * Math.pow(1 + ratePerQ, 4); let annualPay = Math.round(amtAfter1Year - p);
-        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + t); let rows = [];
-        for(let i=1; i<=t; i++) rows.push({ lbl: `Year ${i}`, op: p, dep: 0, int: annualPay, cl: p });
-        return { dep: p, int: annualPay * t, mat: p, payout: annualPay, date: matDate, rows: rows, type: 'payout', freq: ' / year' };
-    },
-    calcPayout: (p, r, yrs, freq, d) => {
-        let pay = Math.round((p * r / 100) / freq); let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs); let rows = [];
-        for (let i = 1; i <= yrs; i++) rows.push({ lbl: `Year ${i}`, op: p, dep: 0, int: pay * freq, cl: p });
-        let freqLabel = (freq === 12) ? ' / month' : ' / quarter';
-        return { dep: p, int: pay * freq * yrs, mat: p, payout: pay, date: matDate, rows: rows, type: 'payout', freq: freqLabel };
-    },
-    calcPPF_SSA: (p, r, d, type, mode, startAge = 0) => {
-        let bal = 0, totDep = 0; let rows = []; let matDate = new Date(d); let depEndDate = new Date(d);
-        if (type === 'ppf') { let fyEndMonth = d.getMonth() > 2 ? d.getFullYear() + 1 : d.getFullYear(); matDate = new Date(fyEndMonth + 15, 2, 31); depEndDate = matDate; } 
-        else { matDate.setFullYear(d.getFullYear() + 21); depEndDate = new Date(d); depEndDate.setFullYear(d.getFullYear() + 15); }
-        let curr = new Date(d); curr.setDate(1); let yrData = { op: 0, dep: 0, int: 0, cl: 0 }; let accInt = 0; let openDay = d.getDate();
-        let yearsElapsed = 0;
-        while (curr < matDate) {
-            let m = curr.getMonth(); let y = curr.getFullYear(); let monDep = 0;
-            if (curr < depEndDate) {
-                if (mode === 'monthly') monDep = p;
-                else if (mode === 'annual') { if (m === 3 || (y === d.getFullYear() && m === d.getMonth())) monDep = p; }
-            }
-            bal += monDep; totDep += monDep; yrData.dep += monDep;
-            let qualifyingBal = bal; let isFirstMonth = (curr.getMonth() === d.getMonth() && curr.getFullYear() === d.getFullYear());
-            if (isFirstMonth && openDay > 5 && monDep > 0) qualifyingBal = bal - monDep;
-            let int = (qualifyingBal * r) / 1200; accInt += int;
-            if (m === 2 || (curr.getTime() + 2600000000 > matDate.getTime())) {
-                let credit = Math.round(accInt); bal += credit; yrData.int = credit; yrData.cl = bal; 
-                if (yrData.dep > 0 || yrData.int > 0) {
-                    let fyStart = m <= 2 ? y - 1 : y; 
-                    let fyEndStr = (fyStart + 1).toString().slice(-2);
-                    rows.push({ lbl: `${fyStart}-${fyEndStr}`, age: startAge + yearsElapsed, op: yrData.op, dep: yrData.dep, int: yrData.int, cl: yrData.cl });
-                    yearsElapsed++;
-                }
-                yrData = { op: bal, dep: 0, int: 0, cl: 0 }; accInt = 0;
-            }
-            curr.setMonth(curr.getMonth() + 1);
-        }
-        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: type };
-    },
-    calcRD: (p, r, d) => {
-        let rows = [], bal = 0, bucket = 0, totDep = 0; let yrOp = 0, yrDep = 0; let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5);
-        for (let i = 1; i <= 60; i++) {
-            bal += p; totDep += p; yrDep += p; bucket += (bal * r) / 1200;
-            if (i % 3 === 0) { bal += bucket; bucket = 0; }
-            if (i % 12 === 0) { rows.push({ lbl: `Year ${i/12}`, op: yrOp, dep: yrDep, int: Math.round(bal - yrOp - yrDep), cl: Math.round(bal) }); yrOp = Math.round(bal); yrDep = 0; }
-        }
-        return { dep: totDep, int: Math.round(bal) - totDep, mat: Math.round(bal), date: matDate, rows: rows, type: 'compound' };
-    },
-    calcNSC: (p, r, d) => {
-        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5); let rows = [], bal = p;
-        for(let i=1; i<=5; i++) { let int = Math.round(bal * r / 100); rows.push({ lbl: `Year ${i}`, op: Math.round(bal), dep: 0, int: int, cl: Math.round(bal+int) }); bal += int; }
-        return { dep: p, int: Math.round(bal)-p, mat: Math.round(bal), date: matDate, rows: rows, type: 'compound' };
-    },
-    calcKVP: (p, r, d) => {
-        let matDate = new Date(d); matDate.setMonth(d.getMonth() + 115);
-        return { dep: p, int: p, mat: p*2, date: matDate, rows: [{lbl:'Maturity (115 Mo)', op:p, dep:0, int:p, cl:p*2}], type: 'compound' };
-    },
-    calcRD_EXT: (p, r, extYrs, type, d) => {
-        let quarterlyRate = r / 400;
-        let matDate = new Date(d);
-        matDate.setFullYear(d.getFullYear() + 5 + extYrs);
-
-        function getRDMaturity(dep, months, qRate) {
-            let mat = 0;
-            for (let m = 1; m <= months; m++) {
-                let quarters = (months - m + 1) / 3;
-                mat += dep * Math.pow(1 + qRate, quarters);
-            }
-            return mat; 
-        }
-
-        let rows = [];
-        let totalDeposit = 0;
-        let finalMaturity = 0;
-
-        let baseMaturity = Math.round(getRDMaturity(p, 60, quarterlyRate));
-        let baseDeposit = p * 60;
-        rows.push({ lbl: `Base (1-5 Yrs)`, op: 0, dep: baseDeposit, int: baseMaturity - baseDeposit, cl: baseMaturity });
-
-        let previousMaturity = baseMaturity;
-
-        if (type === "with") {
-            totalDeposit = baseDeposit;
-            for (let y = 1; y <= extYrs; y++) {
-                let currentMonths = 60 + (y * 12);
-                let currentMaturity = Math.round(getRDMaturity(p, currentMonths, quarterlyRate));
-                let yearlyDep = p * 12;
-                totalDeposit += yearlyDep;
-                let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
-                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: yearlyDep, int: yearlyInt, cl: currentMaturity });
-                previousMaturity = currentMaturity;
-            }
-            finalMaturity = previousMaturity;
-
-        } else {
-            totalDeposit = baseDeposit;
-            for (let y = 1; y <= extYrs; y++) {
-                let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
-                let yearlyInt = currentMaturity - previousMaturity;
-                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: 0, int: yearlyInt, cl: currentMaturity });
-                previousMaturity = currentMaturity;
-            }
-            finalMaturity = previousMaturity;
-        }
-
-        return { dep: totalDeposit, int: finalMaturity - totalDeposit, mat: finalMaturity, date: matDate, rows: rows, type: 'compound' };
-    }
-};
 /* =========================================
-   PART 2: UI CONTROLLER & RENDER LOGIC
+   PART 2: UI SETUP & EVENT LISTENERS
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -307,14 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
 
     const realSelector = document.getElementById('schemeSelector');
-    
     if(realSelector) {
         realSelector.addEventListener('change', (e) => { 
             toggleInputs(); 
             updateInfoContent(e.target.value); 
         });
     }
-    
+
     const categoryBtns = document.querySelectorAll('#mainCategoryToggle .toggle-btn');
     const dropdownItems = document.querySelectorAll('#dropdownList li');
     const ddHeaderText = document.querySelector('#dropdownHeader span');
@@ -497,10 +310,209 @@ function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-}
+                   }
 /* =========================================
-   PART 3: CALCULATION EXECUTION
+   PART 3: CALCULATION & GRID ENGINE
    ========================================= */
+
+// 🚀 CRACKED OFFICIAL ALGORITHM: Matches Dak Sewa Exact Internal Routing
+function generateInsuranceGrid(sa, entryAge, type, d, mode) {
+    const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
+    let rows = [];
+    
+    let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
+    let baseline = type === 'pli' ? 10000 : 1000;
+    let bonusRate = type === 'pli' ? 52 : 48;
+    
+    let gstRate = 0.045; 
+    const reformDate = new Date("2025-09-22");
+    if (d >= reformDate) gstRate = 0.0; 
+
+    let n = 1;
+    if (mode === 'yearly') n = 12;
+    else if (mode === 'half') n = 6;
+    else if (mode === 'quarterly') n = 3;
+
+    permittedMaturityAges.forEach(matAge => {
+        let term = matAge - entryAge;
+        if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
+            
+            let tableRate = matrix[entryAge][matAge];
+            let monthlyGross = (sa / baseline) * tableRate;
+            
+            let totalDiscount = 0;
+            
+            if (type === 'pli') {
+                let discountPer10k = 0;
+                if (mode === 'yearly') discountPer10k = Math.floor(tableRate * 12 * 0.03 * 5) / 5;
+                else if (mode === 'half') discountPer10k = Math.floor(tableRate * 6 * 0.015 * 5) / 5;
+                else if (mode === 'quarterly') discountPer10k = Math.floor(tableRate * 3 * 0.0025 * 5) / 5;
+                totalDiscount = discountPer10k * (sa / 10000);
+            } else if (type === 'rpli') {
+                let discountPer10k = 0;
+                if (mode === 'yearly') discountPer10k = 20.5;
+                else if (mode === 'half') discountPer10k = 5.5;
+                else if (mode === 'quarterly') discountPer10k = 1.5;
+                totalDiscount = discountPer10k * (sa / 10000);
+            }
+
+            let aggregatedGross = monthlyGross * n;
+            let finalGrossPrem = Math.round(aggregatedGross - totalDiscount);
+            
+            // Replicate the Fractional Rebate Floor Logic
+            let totalRebateRaw = (sa / 20000) * n;
+            let displayRebate = Math.floor(totalRebateRaw); 
+            
+            let intermediatePremium = finalGrossPrem - totalRebateRaw;
+            
+            // Floor down to drop the weird 50 paise anomalies seen in screenshots
+            let basePremiumRounded = Math.floor(intermediatePremium);
+            
+            let taxAmt = Math.round(basePremiumRounded * gstRate);
+            let netPremium = basePremiumRounded + taxAmt;
+            
+            let reversionaryBonus = (sa / 1000) * bonusRate * term;
+            let totalBonus = reversionaryBonus; 
+            let finalMaturity = sa + totalBonus;
+
+            rows.push({
+                matAge: matAge,
+                duration: term,
+                premium: finalGrossPrem,
+                rebate: displayRebate,
+                tax: taxAmt,
+                net: netPremium,
+                bonus: totalBonus,
+                matAmt: finalMaturity
+            });
+        }
+    });
+    return rows;
+}
+
+const Engines = {
+    calcSB: (p, r, d) => {
+        let yrs = parseInt(document.getElementById('sbTenure').value) || 1;
+        let rows = []; let bal = p; let startMonth = (d.getDate() > 10) ? 1 : 0; 
+        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs);
+        for (let i = 1; i <= yrs; i++) {
+            let int = 0;
+            if (i === 1 && startMonth === 1) int = Math.round(bal * (r/100) * (11/12)); else int = Math.round(bal * (r/100));
+            let op = bal; bal += int; rows.push({ lbl: `Year ${i}`, op: op, dep: 0, int: int, cl: bal });
+        }
+        return { dep: p, int: bal - p, mat: bal, date: matDate, rows: rows, type: 'compound' };
+    },
+    calcTD: (p, r, t, d) => {
+        let ratePerQ = r / 400; let amtAfter1Year = p * Math.pow(1 + ratePerQ, 4); let annualPay = Math.round(amtAfter1Year - p);
+        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + t); let rows = [];
+        for(let i=1; i<=t; i++) rows.push({ lbl: `Year ${i}`, op: p, dep: 0, int: annualPay, cl: p });
+        return { dep: p, int: annualPay * t, mat: p, payout: annualPay, date: matDate, rows: rows, type: 'payout', freq: ' / year' };
+    },
+    calcPayout: (p, r, yrs, freq, d) => {
+        let pay = Math.round((p * r / 100) / freq); let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs); let rows = [];
+        for (let i = 1; i <= yrs; i++) rows.push({ lbl: `Year ${i}`, op: p, dep: 0, int: pay * freq, cl: p });
+        let freqLabel = (freq === 12) ? ' / month' : ' / quarter';
+        return { dep: p, int: pay * freq * yrs, mat: p, payout: pay, date: matDate, rows: rows, type: 'payout', freq: freqLabel };
+    },
+    calcPPF_SSA: (p, r, d, type, mode, startAge = 0) => {
+        let bal = 0, totDep = 0; let rows = []; let matDate = new Date(d); let depEndDate = new Date(d);
+        if (type === 'ppf') { let fyEndMonth = d.getMonth() > 2 ? d.getFullYear() + 1 : d.getFullYear(); matDate = new Date(fyEndMonth + 15, 2, 31); depEndDate = matDate; } 
+        else { matDate.setFullYear(d.getFullYear() + 21); depEndDate = new Date(d); depEndDate.setFullYear(d.getFullYear() + 15); }
+        let curr = new Date(d); curr.setDate(1); let yrData = { op: 0, dep: 0, int: 0, cl: 0 }; let accInt = 0; let openDay = d.getDate();
+        let yearsElapsed = 0;
+        while (curr < matDate) {
+            let m = curr.getMonth(); let y = curr.getFullYear(); let monDep = 0;
+            if (curr < depEndDate) {
+                if (mode === 'monthly') monDep = p;
+                else if (mode === 'annual') { if (m === 3 || (y === d.getFullYear() && m === d.getMonth())) monDep = p; }
+            }
+            bal += monDep; totDep += monDep; yrData.dep += monDep;
+            let qualifyingBal = bal; let isFirstMonth = (curr.getMonth() === d.getMonth() && curr.getFullYear() === d.getFullYear());
+            if (isFirstMonth && openDay > 5 && monDep > 0) qualifyingBal = bal - monDep;
+            let int = (qualifyingBal * r) / 1200; accInt += int;
+            if (m === 2 || (curr.getTime() + 2600000000 > matDate.getTime())) {
+                let credit = Math.round(accInt); bal += credit; yrData.int = credit; yrData.cl = bal; 
+                if (yrData.dep > 0 || yrData.int > 0) {
+                    let fyStart = m <= 2 ? y - 1 : y; 
+                    let fyEndStr = (fyStart + 1).toString().slice(-2);
+                    rows.push({ lbl: `${fyStart}-${fyEndStr}`, age: startAge + yearsElapsed, op: yrData.op, dep: yrData.dep, int: yrData.int, cl: yrData.cl });
+                    yearsElapsed++;
+                }
+                yrData = { op: bal, dep: 0, int: 0, cl: 0 }; accInt = 0;
+            }
+            curr.setMonth(curr.getMonth() + 1);
+        }
+        return { dep: totDep, int: bal - totDep, mat: bal, date: matDate, rows: rows, type: type };
+    },
+    calcRD: (p, r, d) => {
+        let rows = [], bal = 0, bucket = 0, totDep = 0; let yrOp = 0, yrDep = 0; let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5);
+        for (let i = 1; i <= 60; i++) {
+            bal += p; totDep += p; yrDep += p; bucket += (bal * r) / 1200;
+            if (i % 3 === 0) { bal += bucket; bucket = 0; }
+            if (i % 12 === 0) { rows.push({ lbl: `Year ${i/12}`, op: yrOp, dep: yrDep, int: Math.round(bal - yrOp - yrDep), cl: Math.round(bal) }); yrOp = Math.round(bal); yrDep = 0; }
+        }
+        return { dep: totDep, int: Math.round(bal) - totDep, mat: Math.round(bal), date: matDate, rows: rows, type: 'compound' };
+    },
+    calcNSC: (p, r, d) => {
+        let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5); let rows = [], bal = p;
+        for(let i=1; i<=5; i++) { let int = Math.round(bal * r / 100); rows.push({ lbl: `Year ${i}`, op: Math.round(bal), dep: 0, int: int, cl: Math.round(bal+int) }); bal += int; }
+        return { dep: p, int: Math.round(bal)-p, mat: Math.round(bal), date: matDate, rows: rows, type: 'compound' };
+    },
+    calcKVP: (p, r, d) => {
+        let matDate = new Date(d); matDate.setMonth(d.getMonth() + 115);
+        return { dep: p, int: p, mat: p*2, date: matDate, rows: [{lbl:'Maturity (115 Mo)', op:p, dep:0, int:p, cl:p*2}], type: 'compound' };
+    },
+    calcRD_EXT: (p, r, extYrs, type, d) => {
+        let quarterlyRate = r / 400;
+        let matDate = new Date(d);
+        matDate.setFullYear(d.getFullYear() + 5 + extYrs);
+
+        function getRDMaturity(dep, months, qRate) {
+            let mat = 0;
+            for (let m = 1; m <= months; m++) {
+                let quarters = (months - m + 1) / 3;
+                mat += dep * Math.pow(1 + qRate, quarters);
+            }
+            return mat; 
+        }
+
+        let rows = [];
+        let totalDeposit = 0;
+        let finalMaturity = 0;
+
+        let baseMaturity = Math.round(getRDMaturity(p, 60, quarterlyRate));
+        let baseDeposit = p * 60;
+        rows.push({ lbl: `Base (1-5 Yrs)`, op: 0, dep: baseDeposit, int: baseMaturity - baseDeposit, cl: baseMaturity });
+
+        let previousMaturity = baseMaturity;
+
+        if (type === "with") {
+            totalDeposit = baseDeposit;
+            for (let y = 1; y <= extYrs; y++) {
+                let currentMonths = 60 + (y * 12);
+                let currentMaturity = Math.round(getRDMaturity(p, currentMonths, quarterlyRate));
+                let yearlyDep = p * 12;
+                totalDeposit += yearlyDep;
+                let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
+                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: yearlyDep, int: yearlyInt, cl: currentMaturity });
+                previousMaturity = currentMaturity;
+            }
+            finalMaturity = previousMaturity;
+
+        } else {
+            totalDeposit = baseDeposit;
+            for (let y = 1; y <= extYrs; y++) {
+                let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
+                let yearlyInt = currentMaturity - previousMaturity;
+                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: 0, int: yearlyInt, cl: currentMaturity });
+                previousMaturity = currentMaturity;
+            }
+            finalMaturity = previousMaturity;
+        }
+
+        return { dep: totalDeposit, int: finalMaturity - totalDeposit, mat: finalMaturity, date: matDate, rows: rows, type: 'compound' };
+    }
+};
 
 function handleCalculate() {
     const s = document.getElementById('schemeSelector').value;
@@ -605,12 +617,6 @@ function handleCalculate() {
     }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
-    else if (s === 'rd_ext') {
-        let extRate = getVal('rdExtRate') || 6.7;
-        let extYrs = parseInt(document.getElementById('rdExtYears').value) || 1;
-        let extType = document.getElementById('rdExtType').value || 'with';
-        res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
-    }
     
     const extendSection = document.getElementById('rdExtendSection');
     const extendInputs = document.getElementById('rdExtendInputs');
@@ -713,76 +719,4 @@ function captureAndShare() {
     
     clone.querySelectorAll('th, td').forEach(cell => {
         cell.style.whiteSpace = 'nowrap';
-    });
-
-    document.body.appendChild(clone);
-
-    html2canvas(clone, { 
-        scale: 4, 
-        useCORS: true, 
-        scrollY: -window.scrollY 
-    }).then(async canvas => {
-        document.body.removeChild(clone); 
-        
-        canvas.toBlob(async (blob) => {
-            const file = new File([blob], "PostCalc-Report.png", { type: "image/png" });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'PostCalc Report',
-                        text: 'Here is the India Post scheme calculation.',
-                        files: [file],
-                    });
-                } catch (err) { console.log("Share cancelled", err); }
-            } else {
-                const link = document.createElement('a');
-                link.download = 'PostCalc-Report.png';
-                link.href = URL.createObjectURL(blob);
-                link.click();
-            }
-            
-            btn.innerText = originalText;
-            btn.disabled = false;
-        });
-    }).catch(err => {
-        console.error(err);
-        btn.innerText = originalText;
-        btn.disabled = false;
-        alert("Error generating image.");
-    });
-}
-
-function getVal(id) { 
-    const el = document.getElementById(id); 
-    return el ? (parseFloat(el.value)||0) : 0; 
-}
-
-function fmt(n) { 
-    return '₹' + Math.round(n).toLocaleString('en-IN'); 
-}
-
-function showWarn(m) { 
-    const w = document.getElementById('warningBox'); 
-    w.innerText = '⚠️ ' + m; 
-    w.style.display = 'block'; 
-}
-
-function hideWarn() { 
-    document.getElementById('warningBox').style.display = 'none'; 
-}
-
-/* =========================================
-   PART 4: SILENT AUTO-UPDATE LOGIC
-   ========================================= */
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-            window.location.reload();
-            refreshing = true;
-        }
-    });
-}
+   

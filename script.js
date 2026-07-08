@@ -1,6 +1,3 @@
-/* =========================================
-   PART 1: CONFIGURATION & TABLES
-   ========================================= */
 const SCHEMES = {
     'sb': { name: "Savings Account", rate: 4.0, min: 500, tenure: 1 },
     'rd': { name: "Recurring Deposit", rate: 6.7, min: 100, tenure: 5 },
@@ -15,22 +12,85 @@ const SCHEMES = {
     'rpli': { name: "RPLI - Gram Santosh", min: 10000, max: 1000000 }
 };
 
-const SCHEME_RULES = {
-    'pli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 52 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹20,000</td></tr><tr><th>Max Sum Assured</th><td>₹50 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
-    'rpli': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Bonus Rate</th><td>Rs. 48 per 1000 SA per year</td></tr><tr><th>Entry Age</th><td>19 to 55 Years</td></tr><tr><th>Min Sum Assured</th><td>₹10,000</td></tr><tr><th>Max Sum Assured</th><td>₹10 Lakhs</td></tr></table><div class="info-section-title">Calculation & Rules</div><table class="info-table"><tr><th>GST Rules</th><td>0% for payments on/after Sept 22, 2025. Legacy payments bear 4.5% (Yr 1).</td></tr><tr><th>HSA Rebate</th><td>Re. 1 per month per ₹20,000 block or part thereof.</td></tr></table>`,
-    'sb': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>4.0% per annum</td></tr><tr><th>Tenure</th><td>Continuing Account</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
-    'rd': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>6.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years (Extendable)</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹100 per month</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
-    'ssa': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>21 Years</td></tr><tr><th>Eligibility</th><td>Girl Child (Below 10)</td></tr><tr><th>Min Deposit</th><td>₹250 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
-    'ppf': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.1% per annum</td></tr><tr><th>Tenure</th><td>15 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹500 per year</td></tr><tr><th>Max Deposit</th><td>₹1.5 Lakh per year</td></tr></table>`,
-    'mis': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.4% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹9L (Single)/₹15L (Joint)</td></tr></table>`,
-    'td': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>1Y:6.9%, 2Y:7.0%, 3Y:7.1%, 5Y:7.5%</td></tr><tr><th>Tenure</th><td>1, 2, 3, or 5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
-    'scss': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>8.2% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Age 60+ (55+ for VRS)</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>₹30 Lakh</td></tr></table>`,
-    'nsc': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.7% per annum</td></tr><tr><th>Tenure</th><td>5 Years</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`,
-    'kvp': `<div class="info-section-title">Overview</div><table class="info-table"><tr><th>Interest Rate</th><td>7.5% per annum</td></tr><tr><th>Tenure</th><td>115 Months</td></tr><tr><th>Eligibility</th><td>Resident Individual</td></tr><tr><th>Min Deposit</th><td>₹1,000</td></tr><tr><th>Max Deposit</th><td>No Limit</td></tr></table>`
+const PLI_TABLE = { 
+    19: {35:52, 40:38, 45:30, 50:24, 55:20, 58:18, 60:18}, 
+    20: {35:54, 40:40, 45:32, 50:26, 55:20, 58:20, 60:18}, 
+    21: {35:58, 40:42, 45:32, 50:26, 55:22, 58:20, 60:18}, 
+    22: {35:64, 40:44, 45:34, 50:28, 55:22, 58:20, 60:20}, 
+    23: {35:70, 40:48, 45:36, 50:28, 55:24, 58:20, 60:20}, 
+    24: {35:76, 40:52, 45:38, 50:30, 55:24, 58:22, 60:20}, 
+    25: {35:84, 40:54, 45:40, 50:32, 55:26, 58:22, 60:22}, 
+    26: {35:94, 40:58, 45:42, 50:32, 55:26, 58:24, 60:22}, 
+    27: {35:106, 40:64, 45:44, 50:34, 55:28, 58:24, 60:24}, 
+    28: {35:122, 40:70, 45:48, 50:36, 55:28, 58:26, 60:24}, 
+    29: {35:144, 40:76, 45:52, 50:38, 55:30, 58:26, 60:26}, 
+    30: {35:172, 40:84, 45:56, 50:40, 55:32, 58:28, 60:26}, 
+    31: {40:96, 45:60, 50:44, 55:34, 58:30, 60:28}, 
+    32: {40:106, 45:64, 50:46, 55:34, 58:30, 60:28}, 
+    33: {40:122, 45:70, 50:48, 55:36, 58:32, 60:28}, 
+    34: {40:144, 45:76, 50:52, 55:38, 58:34, 60:30}, 
+    35: {40:172, 45:84, 50:56, 55:40, 58:34, 60:32}, 
+    36: {45:94, 50:60, 55:44, 58:38, 60:34}, 
+    37: {45:106, 50:64, 55:46, 58:40, 60:36}, 
+    38: {45:122, 50:70, 55:50, 58:42, 60:38}, 
+    39: {45:144, 50:78, 55:54, 58:44, 60:40}, 
+    40: {45:174, 50:86, 55:56, 58:46, 60:42}, 
+    41: {50:96, 55:60, 58:50, 60:44}, 
+    42: {50:108, 55:66, 58:54, 60:48}, 
+    43: {50:124, 55:72, 58:58, 60:50}, 
+    44: {50:144, 55:78, 58:62, 60:54}, 
+    45: {50:174, 55:86, 58:66, 60:58}, 
+    46: {55:96, 58:72, 60:62}, 
+    47: {55:110, 58:80, 60:68}, 
+    48: {55:126, 58:88, 60:74}, 
+    49: {55:146, 58:98, 60:80}, 
+    50: {55:176, 58:110, 60:88}, 
+    51: {58:126, 60:98}, 
+    52: {58:150, 60:118}, 
+    53: {58:178, 60:132}, 
+    54: {60:152}, 
+    55: {60:178} 
 };
 
-const PLI_TABLE = { 19: {35:52, 40:38, 45:30, 50:24, 55:20, 58:18, 60:18}, 20: {35:54, 40:40, 45:32, 50:26, 55:20, 58:20, 60:18}, 21: {35:58, 40:42, 45:32, 50:26, 55:22, 58:20, 60:18}, 22: {35:64, 40:44, 45:34, 50:28, 55:22, 58:20, 60:20}, 23: {35:70, 40:48, 45:36, 50:28, 55:24, 58:20, 60:20}, 24: {35:76, 40:52, 45:38, 50:30, 55:24, 58:22, 60:20}, 25: {35:84, 40:54, 45:40, 50:32, 55:26, 58:22, 60:22}, 26: {35:94, 40:58, 45:42, 50:32, 55:26, 58:24, 60:22}, 27: {35:106, 40:64, 45:44, 50:34, 55:28, 58:24, 60:24}, 28: {35:122, 40:70, 45:48, 50:36, 55:28, 58:26, 60:24}, 29: {35:144, 40:76, 45:52, 50:38, 55:30, 58:26, 60:26}, 30: {35:172, 40:84, 45:56, 50:40, 55:32, 58:28, 60:26}, 31: {40:96, 45:60, 50:44, 55:34, 58:30, 60:28}, 32: {40:106, 45:64, 50:46, 55:34, 58:30, 60:28}, 33: {40:122, 45:70, 50:48, 55:36, 58:32, 60:28}, 34: {40:144, 45:76, 50:52, 55:38, 58:34, 60:30}, 35: {40:172, 45:84, 50:56, 55:40, 58:34, 60:32}, 36: {45:94, 50:60, 55:44, 58:38, 60:34}, 37: {45:106, 50:64, 55:46, 58:40, 60:36}, 38: {45:122, 50:70, 55:50, 58:42, 60:38}, 39: {45:144, 50:78, 55:54, 58:44, 60:40}, 40: {45:174, 50:86, 55:56, 58:46, 60:42}, 41: {50:96, 55:60, 58:50, 60:44}, 42: {50:108, 55:66, 58:54, 60:48}, 43: {50:124, 55:72, 58:58, 60:50}, 44: {50:144, 55:78, 58:62, 60:54}, 45: {50:174, 55:86, 58:66, 60:58}, 46: {55:96, 58:72, 60:62}, 47: {55:110, 58:80, 60:68}, 48: {55:126, 58:88, 60:74}, 49: {55:146, 58:98, 60:80}, 50: {55:176, 58:110, 60:88}, 51: {58:126, 60:98}, 52: {58:150, 60:118}, 53: {58:178, 60:132}, 54: {60:152}, 55: {60:178} };
-const RPLI_TABLE = { 19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75}, 20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80}, 21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85}, 22: {35:6.35, 40:4.45, 45:3.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95}, 24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00}, 25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10}, 26: {35:9.40, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20}, 27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30}, 28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40}, 29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50}, 30: {35:17.40, 40:8.45, 45:5.45, 50:4.00, 55:3.15, 58:2.75, 60:2.60}, 31: {40:9.45, 45:5.90, 50:4.25, 55:3.30, 58:2.90, 60:2.70}, 32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80}, 33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95}, 34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05}, 35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}, 36: {45:9.40, 50:6.00, 55:4.40, 58:3.80, 60:3.40}, 37: {45:10.60, 50:6.40, 55:4.60, 58:4.00, 60:3.60}, 38: {45:12.20, 50:7.00, 55:5.00, 58:4.20, 60:3.80}, 39: {45:14.40, 50:7.80, 55:5.40, 58:4.40, 60:4.00}, 40: {45:17.40, 50:8.55, 55:5.60, 58:4.60, 60:4.20}, 41: {50:9.60, 55:6.00, 58:5.00, 60:4.40}, 42: {50:10.80, 55:6.60, 58:5.40, 60:4.80}, 43: {50:12.40, 55:7.20, 58:5.80, 60:5.00}, 44: {50:14.40, 55:7.80, 58:6.20, 60:5.40}, 45: {50:17.40, 55:8.60, 58:6.60, 60:5.80}, 46: {55:9.60, 58:7.20, 60:6.20}, 47: {55:11.00, 58:8.00, 60:6.80}, 48: {55:12.60, 58:8.80, 60:7.40}, 49: {55:14.60, 58:9.80, 60:8.00}, 50: {55:17.60, 58:11.00, 60:8.6667}, 51: {58:12.60, 60:9.80}, 52: {58:15.00, 60:11.80}, 53: {58:17.80, 60:13.20}, 54: {60:15.20}, 55: {60:17.80} };
+const RPLI_TABLE = { 
+    19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75}, 
+    20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80}, 
+    21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85}, 
+    22: {35:6.35, 40:4.45, 45:3.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
+    23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95}, 
+    24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00}, 
+    25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10}, 
+    26: {35:9.40, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20}, 
+    27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30}, 
+    28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40}, 
+    29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50}, 
+    30: {35:17.40, 40:8.45, 45:5.45, 50:4.00, 55:3.15, 58:2.75, 60:2.60}, 
+    31: {40:9.45, 45:5.90, 50:4.25, 55:3.30, 58:2.90, 60:2.70}, 
+    32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80}, 
+    33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95}, 
+    34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05}, 
+    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}, 
+    36: {45:9.40, 50:6.00, 55:4.40, 58:3.80, 60:3.40}, 
+    37: {45:10.60, 50:6.40, 55:4.60, 58:4.00, 60:3.60}, 
+    38: {45:12.20, 50:7.00, 55:5.00, 58:4.20, 60:3.80}, 
+    39: {45:14.40, 50:7.80, 55:5.40, 58:4.40, 60:4.00}, 
+    40: {45:17.40, 50:8.55, 55:5.60, 58:4.60, 60:4.20}, 
+    41: {50:9.60, 55:6.00, 58:5.00, 60:4.40}, 
+    42: {50:10.80, 55:6.60, 58:5.40, 60:4.80}, 
+    43: {50:12.40, 55:7.20, 58:5.80, 60:5.00}, 
+    44: {50:14.40, 55:7.80, 58:6.20, 60:5.40}, 
+    45: {50:17.40, 55:8.60, 58:6.60, 60:5.80}, 
+    46: {55:9.60, 58:7.20, 60:6.20}, 
+    47: {55:11.00, 58:8.00, 60:6.80}, 
+    48: {55:12.60, 58:8.80, 60:7.40}, 
+    49: {55:14.60, 58:9.80, 60:8.00}, 
+    50: {55:17.60, 58:11.00, 60:8.6667}, 
+    51: {58:12.60, 60:9.80}, 
+    52: {58:15.00, 60:11.80}, 
+    53: {58:17.80, 60:13.20}, 
+    54: {60:15.20}, 
+    55: {60:17.80} 
+};
 
 function numToWord(val, divId) {
     const div = document.getElementById(divId); if (!div) return;
@@ -49,12 +109,12 @@ function numToWord(val, divId) {
     if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
     if (n > 0) { str += convert(n); }
     div.innerText = str + " Rupees Only";
-                                                   }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        /* =========================================
-   PART 2: NAV & CALC ENGINES
+   }
+       /* =========================================
+   PART 2: NAV, MODALS & TREASURY
    ========================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Navigation ---
+    // --- App Navigation ---
     const viewHome = document.getElementById('viewHome');
     const viewCalc = document.getElementById('viewCalculator');
     const viewTreasury = document.getElementById('viewTreasury');
@@ -76,13 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('navSavings')?.addEventListener('click', () => switchView('calc', false));
     document.getElementById('navInsurance')?.addEventListener('click', () => switchView('calc', true));
     document.getElementById('navTreasury')?.addEventListener('click', () => switchView('treasury'));
-
     btnBack?.addEventListener('click', () => {
         viewHome.classList.remove('hidden-view'); viewCalc.classList.add('hidden-view'); viewTreasury.classList.add('hidden-view');
         btnBack.classList.add('hidden');
     });
 
-    // --- Calculator Nav ---
+    // --- Calculator UI Bindings ---
     const d = new Date();
     if(document.getElementById('dateOpen')) document.getElementById('dateOpen').valueAsDate = d;
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
@@ -142,8 +201,174 @@ document.addEventListener('DOMContentLoaded', () => {
         hideWarn(); let res = Engines.calcRD_EXT(p, extRate, extYrs, extType, d);
         document.getElementById('printSchemeName').innerText = "RD (Extension)"; if(res) renderSimple(res);
     });
-});
 
+    // --- Treasury Manager Logic ---
+    const DEFAULT_RECEIPTS = ["Cash from AO", "SB", "RD", "RD Default", "SSA", "IPPB", "PLI / RPLI", "VPP / COD", "EMO"];
+    const DEFAULT_PAYMENTS = ["Cash to AO", "SB Withdrawals", "IPPB Withdrawals"];
+    const treasuryDate = document.getElementById('treasuryDate');
+    const valOpeningBal = document.getElementById('valOpeningBal');
+    const valClosingBal = document.getElementById('valClosingBal');
+    const receiptsList = document.getElementById('receiptsList');
+    const paymentsList = document.getElementById('paymentsList');
+
+    if (treasuryDate) { treasuryDate.addEventListener('change', () => loadLedgerData(treasuryDate.value)); }
+
+    function renderRows(container, items, isPayment, isLocked) {
+        container.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div'); div.className = 'trans-row';
+            const isCustom = !DEFAULT_RECEIPTS.includes(item.label) && !DEFAULT_PAYMENTS.includes(item.label);
+            const labelHtml = isCustom ? `<input type="text" value="${item.label}" class="custom-label" placeholder="Description" style="flex:1; margin-right:10px; font-weight:normal;" ${isLocked ? 'disabled' : ''}>` : `<label>${item.label}</label>`;
+            div.innerHTML = `${labelHtml}<input type="number" class="${isPayment ? 'val-payment' : 'val-receipt'}" placeholder="0" value="${item.val > 0 ? item.val : ''}" style="width:120px;" ${isLocked ? 'disabled' : ''}>`;
+            container.appendChild(div);
+        }); setupTreasuryCalc();
+    }
+
+    function setLockState(isLocked) {
+        valOpeningBal.disabled = isLocked;
+        document.getElementById('btnAddReceipt').style.display = isLocked ? 'none' : 'block';
+        document.getElementById('btnAddPayment').style.display = isLocked ? 'none' : 'block';
+        const btnSave = document.getElementById('btnSaveLedger');
+        if (btnSave) { btnSave.disabled = isLocked; btnSave.innerText = isLocked ? "Saved (Locked)" : "Save Entry"; }
+    }
+
+    function loadLedgerData(dateStr) {
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        let defaultR = DEFAULT_RECEIPTS.map(lbl => ({label: lbl, val: 0})); 
+        let defaultP = DEFAULT_PAYMENTS.map(lbl => ({label: lbl, val: 0}));
+
+        if (db[dateStr]) {
+            const entry = db[dateStr]; valOpeningBal.value = entry.opening;
+            // The OR fallback ensures legacy data doesn't crash the app
+            renderRows(receiptsList, entry.receipts || defaultR, false, true); 
+            renderRows(paymentsList, entry.payments || defaultP, true, true); 
+            setLockState(true);
+        } else {
+            let dates = Object.keys(db).sort(); let prevDate = dates.filter(d => d < dateStr).pop(); valOpeningBal.value = prevDate ? db[prevDate].closing : 0;
+            renderRows(receiptsList, defaultR, false, false); renderRows(paymentsList, defaultP, true, false); setLockState(false);
+        } valOpeningBal.dispatchEvent(new Event('input'));
+    }
+
+    function calculateTreasuryBalance() {
+        let op = parseFloat(valOpeningBal.value) || 0;
+        let receipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let payments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let closing = op + receipts - payments; valClosingBal.innerText = "₹" + closing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+
+    function setupTreasuryCalc() {
+        document.querySelectorAll('.val-receipt, .val-payment, #valOpeningBal').forEach(input => {
+            input.removeEventListener('input', calculateTreasuryBalance); input.addEventListener('input', calculateTreasuryBalance);
+        }); calculateTreasuryBalance();
+    }
+
+    document.getElementById('btnSaveLedger')?.addEventListener('click', () => {
+        const dateStr = treasuryDate.value; if (!dateStr) return alert("Please select a date first.");
+        let receiptsData = []; document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Receipt"; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; receiptsData.push({label, val}); });
+        let paymentsData = []; document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Payment"; let val = parseFloat(row.querySelector('.val-payment').value) || 0; paymentsData.push({label, val}); });
+        const closingNum = parseFloat(valClosingBal.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        db[dateStr] = { opening: parseFloat(valOpeningBal.value) || 0, closing: closingNum, receipts: receiptsData, payments: paymentsData, timestamp: new Date().getTime() };
+        localStorage.setItem('postcalc_treasury_db', JSON.stringify(db));
+        alert("Daily Account Saved & Locked successfully for " + dateStr); loadLedgerData(dateStr); 
+    });
+
+    document.getElementById('btnAddReceipt')?.addEventListener('click', () => { renderRows(receiptsList, [...getFormState(receiptsList), {label: "", val: 0}], false, false); });
+    document.getElementById('btnAddPayment')?.addEventListener('click', () => { renderRows(paymentsList, [...getFormState(paymentsList), {label: "", val: 0}], true, false); });
+    function getFormState(container) { let data = []; container.querySelectorAll('.trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || ""; let val = parseFloat(row.querySelector('input[type="number"]').value) || 0; data.push({label, val}); }); return data; }
+
+    const menuBtn = document.getElementById('btnTreasuryMenu'); const menuDropdown = document.getElementById('treasuryDropdown');
+    const toolsModal = document.getElementById('toolsModal'); const uiPastBoda = document.getElementById('uiPastBoda'); const uiExcel = document.getElementById('uiExcel'); const toolsTitle = document.getElementById('toolsModalTitle');
+    menuBtn?.addEventListener('click', (e) => { e.stopPropagation(); menuDropdown.classList.toggle('hidden'); });
+    document.addEventListener('click', () => { if(menuDropdown && !menuDropdown.classList.contains('hidden')) menuDropdown.classList.add('hidden'); });
+    document.getElementById('optPastBoda')?.addEventListener('click', () => { uiPastBoda.classList.remove('hidden'); uiExcel.classList.add('hidden'); toolsTitle.innerText = "Download Past BODA"; toolsModal.classList.add('show'); });
+    document.getElementById('optExcel')?.addEventListener('click', () => { uiPastBoda.classList.add('hidden'); uiExcel.classList.remove('hidden'); toolsTitle.innerText = "Monthly Excel Report"; toolsModal.classList.add('show'); });
+    document.getElementById('closeTools')?.addEventListener('click', () => { toolsModal.classList.remove('show'); });
+
+    document.getElementById('btnExecutePastBoda')?.addEventListener('click', () => {
+        const pDate = document.getElementById('inputPastBoda').value; if(!pDate) return alert("Select a date.");
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {}; if(!db[pDate]) return alert("No saved data found for " + pDate);
+        toolsModal.classList.remove('show'); treasuryDate.value = pDate; loadLedgerData(pDate); setTimeout(() => { document.getElementById('btnGenerateBODA').click(); }, 300);
+    });
+
+    document.getElementById('btnExecuteExcel')?.addEventListener('click', () => {
+        const monthStr = document.getElementById('inputExcelMonth').value; if(!monthStr) return alert("Select a month.");
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        let csv = "Date,Opening Balance,Total Receipts,Total Payments,Closing Balance\n"; let found = false;
+        Object.keys(db).sort().forEach(dateKey => {
+            if(dateKey.startsWith(monthStr)) { 
+                found = true; 
+                const entry = db[dateKey]; 
+                // The OR fallback ensures legacy data doesn't crash the Excel export
+                const tr = (entry.receipts || []).reduce((sum, i) => sum + i.val, 0); 
+                const tp = (entry.payments || []).reduce((sum, i) => sum + i.val, 0); 
+                csv += `${dateKey},${entry.opening},${tr},${tp},${entry.closing}\n`; 
+            }
+        });
+        if(!found) return alert("No data found for this month.");
+        const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a');
+        a.setAttribute('hidden', ''); a.setAttribute('href', url); a.setAttribute('download', `Treasury_Report_${monthStr}.csv`); document.body.appendChild(a); a.click(); document.body.removeChild(a); toolsModal.classList.remove('show');
+    });
+
+     document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+        const btn = document.getElementById('btnGenerateBODA'); const originalText = btn.innerText; btn.innerText = "Generating..."; btn.disabled = true;
+        let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name (e.g., Digras BK B.O):", ""); if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
+        let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name (e.g., Deulgaon Mahi S.O):", ""); if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
+        let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID (e.g., SUNIL (50041216)):", ""); if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
+        try {
+            const getWords = (num) => {
+                if (!num || num === 0) return "Zero";
+                const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                const convert = (n) => { if (n < 20) return a[n]; if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : ""); if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : ""); return ""; };
+                let str = ""; let n = Math.floor(num); if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; } if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; } if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; } if (n > 0) { str += convert(n); } return str.trim();
+            };
+            const printDiv = document.createElement('div'); printDiv.style.width = '800px'; printDiv.style.padding = '40px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '12px';
+            let totalReceipts = 0; let totalPayments = 0; let tableRows = ''; let sno = 1;
+            document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; if (val > 0) { totalReceipts += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px;"></td></tr>`; } });
+            document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-payment').value) || 0; if (val > 0) { totalPayments += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td><td style="border: 1px solid black; padding: 6px;"></td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td></tr>`; } });
+            const openingBal = parseFloat(document.getElementById('valOpeningBal').value) || 0; const closingBalRaw = openingBal + totalReceipts - totalPayments; const reportDate = document.getElementById('treasuryDate').value.split('-').reverse().join('-'); const now = new Date(); const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
+            
+            printDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
+                    <div style="width: 60%; text-align: center;"><h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2><h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3></div>
+                    <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">A.C.G-22 (A)<br>Preservation Period - 2 Yr</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
+                    <div style="flex: 1;"><div style="font-weight:bold;">To,</div><div style="margin-top: 25px; display: flex; align-items: flex-end;"><div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div><div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div></div><div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div></div>
+                    <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">Date Stamp of<br>Branch Office</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+                    <div style="line-height: 1.6;"><div>Office Name: <strong>${boName}</strong></div><div>User Name: <strong>${userName}</strong></div><div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div></div>
+                    <div style="line-height: 1.6; text-align: right;"><div>Generation Date: ${genDate}</div><div>Report Date: ${reportDate}</div></div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td></tr>
+                    <tr style="border: 1px solid black; font-weight: bold;"><th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th><th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th></tr>
+                    ${tableRows}
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td style="border: 1px solid black; padding: 6px;">In Words:</td><td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td></tr>
+                </table>
+                <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">Branch Postmaster, ${boName}</div>
+                <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
+            `;
+            document.body.appendChild(printDiv);
+            html2canvas(printDiv, { scale: 2 }).then(canvas => {
+                document.body.removeChild(printDiv); btn.innerText = originalText; btn.disabled = false;
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); pdf.save(`BODA_${document.getElementById('treasuryDate').value}.pdf`);
+            });
+        } catch(e) { alert("PDF Engine error: " + e.message); btn.innerText = originalText; btn.disabled = false; }
+    });
+});
+/* =========================================
+   PART 3: CALCULATION ENGINES
+   ========================================= */
 function openModal() { const s = document.getElementById('schemeSelector').value; updateInfoContent(s); document.getElementById('infoModal').classList.add('show'); }
 function closeModal() { document.getElementById('infoModal').classList.remove('show'); }
 function updateInfoContent(scheme) { const container = document.getElementById('ruleContent'); container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>"; }
@@ -231,158 +456,71 @@ function handleCalculate() {
         document.getElementById('lblTotalDep').innerText = "Sum Assured"; document.getElementById('lblTotalInt').innerText = "Bonus Status"; document.getElementById('lblMaturity').innerText = "Maturity Estimate"; document.getElementById('lblMatDate').innerText = "Maturity Event";
         let modeLabel = (pMode === 'yearly') ? 'Yearly' : (pMode === 'half') ? 'Half-Yr' : (pMode === 'quarterly') ? 'Qtrly' : 'Monthly';
         document.getElementById('resHead').innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net ${modeLabel}</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
-        document.getElementById('resBody').innerHTML = gridData.map(r => `<tr><td style="text-align:left; font-weight:800;">${r.matAge} Yrs</td><td>${r.duration} Y</td><td>₹${r.premium}</td><td>₹${r.rebate}</td><td>₹${r.tax}</td><td style="color:#059669; font-weight:800;">₹${r.net/* =========================================
-   PART 3: TREASURY DATABASE, LOCKING & EXPORT
-   ========================================= */
-document.addEventListener('DOMContentLoaded', () => {
-    const DEFAULT_RECEIPTS = ["Cash from AO", "SB", "RD", "RD Default", "SSA", "IPPB", "PLI / RPLI", "VPP / COD", "EMO"];
-    const DEFAULT_PAYMENTS = ["Cash to AO", "SB Withdrawals", "IPPB Withdrawals"];
-    const treasuryDate = document.getElementById('treasuryDate');
-    const valOpeningBal = document.getElementById('valOpeningBal');
-    const valClosingBal = document.getElementById('valClosingBal');
-    const receiptsList = document.getElementById('receiptsList');
-    const paymentsList = document.getElementById('paymentsList');
-
-    if (treasuryDate) { treasuryDate.addEventListener('change', () => loadLedgerData(treasuryDate.value)); }
-
-    function renderRows(container, items, isPayment, isLocked) {
-        container.innerHTML = '';
-        items.forEach(item => {
-            const div = document.createElement('div'); div.className = 'trans-row';
-            const isCustom = !DEFAULT_RECEIPTS.includes(item.label) && !DEFAULT_PAYMENTS.includes(item.label);
-            const labelHtml = isCustom ? `<input type="text" value="${item.label}" class="custom-label" placeholder="Description" style="flex:1; margin-right:10px; font-weight:normal;" ${isLocked ? 'disabled' : ''}>` : `<label>${item.label}</label>`;
-            div.innerHTML = `${labelHtml}<input type="number" class="${isPayment ? 'val-payment' : 'val-receipt'}" placeholder="0" value="${item.val > 0 ? item.val : ''}" style="width:120px;" ${isLocked ? 'disabled' : ''}>`;
-            container.appendChild(div);
-        }); setupTreasuryCalc();
-    }
-
-    function setLockState(isLocked) {
-        valOpeningBal.disabled = isLocked;
-        document.getElementById('btnAddReceipt').style.display = isLocked ? 'none' : 'block';
-        document.getElementById('btnAddPayment').style.display = isLocked ? 'none' : 'block';
-        const btnSave = document.getElementById('btnSaveLedger');
-        if (btnSave) { btnSave.disabled = isLocked; btnSave.innerText = isLocked ? "Saved (Locked)" : "Save Entry"; }
-    }
-
-    function loadLedgerData(dateStr) {
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
-        if (db[dateStr]) {
-            const entry = db[dateStr]; valOpeningBal.value = entry.opening;
-            renderRows(receiptsList, entry.receipts, false, true); renderRows(paymentsList, entry.payments, true, true); setLockState(true);
-        } else {
-            let dates = Object.keys(db).sort(); let prevDate = dates.filter(d => d < dateStr).pop(); valOpeningBal.value = prevDate ? db[prevDate].closing : 0;
-            let defaultR = DEFAULT_RECEIPTS.map(lbl => ({label: lbl, val: 0})); let defaultP = DEFAULT_PAYMENTS.map(lbl => ({label: lbl, val: 0}));
-            renderRows(receiptsList, defaultR, false, false); renderRows(paymentsList, defaultP, true, false); setLockState(false);
-        } valOpeningBal.dispatchEvent(new Event('input'));
-    }
-
-    function calculateTreasuryBalance() {
-        let op = parseFloat(valOpeningBal.value) || 0;
-        let receipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
-        let payments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
-        let closing = op + receipts - payments; valClosingBal.innerText = "₹" + closing.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    }
-
-    function setupTreasuryCalc() {
-        document.querySelectorAll('.val-receipt, .val-payment, #valOpeningBal').forEach(input => {
-            input.removeEventListener('input', calculateTreasuryBalance); input.addEventListener('input', calculateTreasuryBalance);
-        }); calculateTreasuryBalance();
-    }
-
-    document.getElementById('btnSaveLedger')?.addEventListener('click', () => {
-        const dateStr = treasuryDate.value; if (!dateStr) return alert("Please select a date first.");
-        let receiptsData = []; document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Receipt"; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; receiptsData.push({label, val}); });
-        let paymentsData = []; document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Payment"; let val = parseFloat(row.querySelector('.val-payment').value) || 0; paymentsData.push({label, val}); });
-        const closingNum = parseFloat(valClosingBal.innerText.replace(/[^0-9.-]+/g,"")) || 0;
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
-        db[dateStr] = { opening: parseFloat(valOpeningBal.value) || 0, closing: closingNum, receipts: receiptsData, payments: paymentsData, timestamp: new Date().getTime() };
-        localStorage.setItem('postcalc_treasury_db', JSON.stringify(db));
-        alert("Daily Account Saved & Locked successfully for " + dateStr); loadLedgerData(dateStr); 
-    });
-
-    document.getElementById('btnAddReceipt')?.addEventListener('click', () => { renderRows(receiptsList, [...getFormState(receiptsList), {label: "", val: 0}], false, false); });
-    document.getElementById('btnAddPayment')?.addEventListener('click', () => { renderRows(paymentsList, [...getFormState(paymentsList), {label: "", val: 0}], true, false); });
-    function getFormState(container) { let data = []; container.querySelectorAll('.trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || ""; let val = parseFloat(row.querySelector('input[type="number"]').value) || 0; data.push({label, val}); }); return data; }
-
-    const menuBtn = document.getElementById('btnTreasuryMenu'); const menuDropdown = document.getElementById('treasuryDropdown');
-    const toolsModal = document.getElementById('toolsModal'); const uiPastBoda = document.getElementById('uiPastBoda'); const uiExcel = document.getElementById('uiExcel'); const toolsTitle = document.getElementById('toolsModalTitle');
-    menuBtn?.addEventListener('click', (e) => { e.stopPropagation(); menuDropdown.classList.toggle('hidden'); });
-    document.addEventListener('click', () => { if(menuDropdown && !menuDropdown.classList.contains('hidden')) menuDropdown.classList.add('hidden'); });
-    document.getElementById('optPastBoda')?.addEventListener('click', () => { uiPastBoda.classList.remove('hidden'); uiExcel.classList.add('hidden'); toolsTitle.innerText = "Download Past BODA"; toolsModal.classList.add('show'); });
-    document.getElementById('optExcel')?.addEventListener('click', () => { uiPastBoda.classList.add('hidden'); uiExcel.classList.remove('hidden'); toolsTitle.innerText = "Monthly Excel Report"; toolsModal.classList.add('show'); });
-    document.getElementById('closeTools')?.addEventListener('click', () => { toolsModal.classList.remove('show'); });
-
-    document.getElementById('btnExecutePastBoda')?.addEventListener('click', () => {
-        const pDate = document.getElementById('inputPastBoda').value; if(!pDate) return alert("Select a date.");
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {}; if(!db[pDate]) return alert("No saved data found for " + pDate);
-        toolsModal.classList.remove('show'); treasuryDate.value = pDate; loadLedgerData(pDate); setTimeout(() => { document.getElementById('btnGenerateBODA').click(); }, 300);
-    });
-
-    document.getElementById('btnExecuteExcel')?.addEventListener('click', () => {
-        const monthStr = document.getElementById('inputExcelMonth').value; if(!monthStr) return alert("Select a month.");
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
-        let csv = "Date,Opening Balance,Total Receipts,Total Payments,Closing Balance\n"; let found = false;
-        Object.keys(db).sort().forEach(dateKey => {
-            if(dateKey.startsWith(monthStr)) { found = true; const entry = db[dateKey]; const tr = entry.receipts.reduce((sum, i) => sum + i.val, 0); const tp = entry.payments.reduce((sum, i) => sum + i.val, 0); csv += `${dateKey},${entry.opening},${tr},${tp},${entry.closing}\n`; }
+        
+        // Formatted cleanly to prevent Android truncation!
+        let buildHtml = '';
+        gridData.forEach(r => {
+            buildHtml += `<tr>`;
+            buildHtml += `<td style="text-align:left; font-weight:800;">${r.matAge} Yrs</td>`;
+            buildHtml += `<td>${r.duration} Y</td>`;
+            buildHtml += `<td>₹${r.premium}</td>`;
+            buildHtml += `<td>₹${r.rebate}</td>`;
+            buildHtml += `<td>₹${r.tax}</td>`;
+            buildHtml += `<td style="color:#059669; font-weight:800;">₹${r.net}</td>`;
+            buildHtml += `<td>${fmt(r.bonus)}</td>`;
+            buildHtml += `<td style="color:var(--ip-ruby); font-weight:800;">${fmt(r.matAmt)}</td>`;
+            buildHtml += `</tr>`;
         });
-        if(!found) return alert("No data found for this month.");
-        const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a');
-        a.setAttribute('hidden', ''); a.setAttribute('href', url); a.setAttribute('download', `Treasury_Report_${monthStr}.csv`); document.body.appendChild(a); a.click(); document.body.removeChild(a); toolsModal.classList.remove('show');
-    });
+        document.getElementById('resBody').innerHTML = buildHtml;
+        
+        const ext = document.getElementById('rdExtendSection'); if (ext) ext.classList.add('hidden');
+        document.getElementById('resultsCard').classList.remove('hidden'); document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'}); return; 
+    }
+    if (s === 'sb') res = Engines.calcSB(p, conf.rate, d); else if (s === 'ppf') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ppf', mode); else if (s === 'ssa') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, parseInt(document.getElementById('ssaAge').value) || 0); else if (s === 'rd') res = Engines.calcRD(p, conf.rate, d); else if (s === 'mis') res = Engines.calcPayout(p, conf.rate, 5, 12, d); else if (s === 'scss') res = Engines.calcPayout(p, conf.rate, 5, 4, d);
+    else if (s === 'td') { let t = parseInt(document.getElementById('tdTenure').value); res = Engines.calcTD(p, conf.rates[t], t, d); }
+    else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d); else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
+    const extendSection = document.getElementById('rdExtendSection'); const btnShowExt = document.getElementById('btnShowExtend');
+    if (extendSection && btnShowExt) { if (s === 'rd') { extendSection.classList.remove('hidden'); btnShowExt.classList.remove('hidden'); document.getElementById('rdExtendInputs').classList.add('hidden'); } else { extendSection.classList.add('hidden'); } }
+    document.getElementById('printSchemeSub').innerText = "Interest Estimate Statement"; document.getElementById('lblTotalDep').innerText = "Total Deposit"; document.getElementById('lblTotalInt').innerText = "Total Interest"; document.getElementById('lblMaturity').innerText = "Maturity Amount"; document.getElementById('lblMatDate').innerText = "Maturity Date";
+    const lblPayout = document.getElementById('lblPayout'); if (lblPayout) lblPayout.innerText = "Regular Payout";
+    if(res) renderSimple(res);
+}
 
-    document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
-        const btn = document.getElementById('btnGenerateBODA'); const originalText = btn.innerText; btn.innerText = "Generating..."; btn.disabled = true;
-        let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name (e.g., Digras BK B.O):", ""); if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
-        let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name (e.g., Deulgaon Mahi S.O):", ""); if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
-        let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID (e.g., SUNIL (50041216)):", ""); if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
-        try {
-            const getWords = (num) => {
-                if (!num || num === 0) return "Zero";
-                const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-                const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-                const convert = (n) => { if (n < 20) return a[n]; if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : ""); if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : ""); return ""; };
-                let str = ""; let n = Math.floor(num); if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; } if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; } if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; } if (n > 0) { str += convert(n); } return str.trim();
-            };
-            const printDiv = document.createElement('div'); printDiv.style.width = '800px'; printDiv.style.padding = '40px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '12px';
-            let totalReceipts = 0; let totalPayments = 0; let tableRows = ''; let sno = 1;
-            document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; if (val > 0) { totalReceipts += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px;"></td></tr>`; } });
-            document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-payment').value) || 0; if (val > 0) { totalPayments += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td><td style="border: 1px solid black; padding: 6px;"></td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td></tr>`; } });
-            const openingBal = parseFloat(document.getElementById('valOpeningBal').value) || 0; const closingBalRaw = openingBal + totalReceipts - totalPayments; const reportDate = document.getElementById('treasuryDate').value.split('-').reverse().join('-'); const now = new Date(); const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
-            printDiv.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                    <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
-                    <div style="width: 60%; text-align: center;"><h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2><h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3></div>
-                    <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">A.C.G-22 (A)<br>Preservation Period - 2 Yr</div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
-                    <div style="flex: 1;"><div style="font-weight:bold;">To,</div><div style="margin-top: 25px; display: flex; align-items: flex-end;"><div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div><div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div></div><div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div></div>
-                    <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">Date Stamp of<br>Branch Office</div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
-                    <div style="line-height: 1.6;"><div>Office Name: <strong>${boName}</strong></div><div>User Name: <strong>${userName}</strong></div><div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div></div>
-                    <div style="line-height: 1.6; text-align: right;"><div>Generation Date: ${genDate}</div><div>Report Date: ${reportDate}</div></div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
-                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td></tr>
-                    <tr style="border: 1px solid black; font-weight: bold;"><th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th><th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th></tr>
-                    ${tableRows}
-                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td></tr>
-                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td></tr>
-                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td></tr>
-                    <tr style="border: 1px solid black;"><td style="border: 1px solid black; padding: 6px;">In Words:</td><td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td></tr>
-                </table>
-                <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">Branch Postmaster, ${boName}</div>
-                <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
-            `;
-            document.body.appendChild(printDiv);
-            html2canvas(printDiv, { scale: 2 }).then(canvas => {
-                document.body.removeChild(printDiv); btn.innerText = originalText; btn.disabled = false;
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); pdf.save(`BODA_${document.getElementById('treasuryDate').value}.pdf`);
-            });
-        } catch(e) { alert("PDF Engine error: " + e.message); btn.innerText = originalText; btn.disabled = false; }
-    });
-});
-           
+function renderSimple(data) {
+    document.getElementById('resTotalDep').innerText = fmt(data.dep); document.getElementById('resTotalInt').innerText = fmt(data.int); document.getElementById('resMaturity').innerText = fmt(data.mat);
+    if (data.date) document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (data.payout) { document.getElementById('rowPayout').classList.remove('hidden'); document.getElementById('resPayout').innerText = fmt(data.payout) + (data.freq || ''); } else { document.getElementById('rowPayout').classList.add('hidden'); }
+    const head = document.getElementById('resHead');
+    if (data.type === 'payout') head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`; else if (data.type === 'ssa') head.innerHTML = `<tr><th>Period (FY)</th><th style="text-align:center;">Age</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`; else if (data.type === 'ppf') head.innerHTML = `<tr><th>Period (FY)</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`; else head.innerHTML = `<tr><th>Period</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
+    document.getElementById('resBody').innerHTML = data.rows.map(r => {
+        if(data.type === 'payout') return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
+        else if (data.type === 'ssa') return `<tr><td>${r.lbl}</td><td style="text-align:center;">${r.age}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
+        return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
+    }).join('');
+    document.getElementById('resultsCard').classList.remove('hidden'); document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
+}
+
+function getVal(id) { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; }
+function showWarn(msg) { const wb = document.getElementById('warningBox'); if (wb) { wb.innerText = msg; wb.style.display = 'block'; } }
+function hideWarn() { const wb = document.getElementById('warningBox'); if (wb) wb.style.display = 'none'; }
+function fmt(num) { return isNaN(num) ? "-" : "₹" + Math.round(num).toLocaleString('en-IN'); }
+
+function captureAndShare() {
+    const btn = document.getElementById('btnShare'); const originalText = btn.innerText; btn.innerText = "Processing..."; btn.disabled = true;
+    const source = document.getElementById('resultsCard'); const clone = source.cloneNode(true);
+    if(clone.querySelector('.download-actions')) clone.querySelector('.download-actions').style.display = 'none';
+    if(clone.querySelector('#rdExtendSection')) clone.querySelector('#rdExtendSection').style.display = 'none';
+    clone.style.width = '794px'; clone.style.minHeight = '1123px'; clone.style.padding = '40px'; clone.style.background = 'white'; clone.style.position = 'fixed'; clone.style.top = '0'; clone.style.left = '0'; clone.style.zIndex = '-100';
+    const tableWrap = clone.querySelector('.table-wrapper'); if(tableWrap) { tableWrap.style.overflow = 'visible'; tableWrap.style.border = 'none'; }
+    const table = clone.querySelector('table'); if(table) table.style.width = '100%';
+    clone.querySelectorAll('th, td').forEach(cell => cell.style.whiteSpace = 'nowrap');
+    document.body.appendChild(clone);
+    html2canvas(clone, { scale: 2, useCORS: true }).then(canvas => {
+        document.body.removeChild(clone); btn.innerText = originalText; btn.disabled = false;
+        canvas.toBlob(blob => {
+            if (!blob) return; const file = new File([blob], "PostCalc_Statement.png", { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ title: document.getElementById('printSchemeName').innerText, text: 'PostCalc Savings Estimate', files: [file] }).catch(console.error); } 
+            else { const link = document.createElement('a'); link.download = 'PostCalc_Statement.png'; link.href = canvas.toDataURL('image/png'); link.click(); }
+        }, 'image/png');
+    }).catch(err => { document.body.removeChild(clone); btn.innerText = originalText; btn.disabled = false; console.error("Error rendering image:", err); });
+                                                                                                }

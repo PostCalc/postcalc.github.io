@@ -9,13 +9,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <script>
+        // Cache Buster to ensure you get the newest version
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let r of registrations) { r.unregister(); }
+            });
+        }
+    </script>
 </head>
 <body>
     <div id="app-wrapper">
         <div id="appHeader" class="app-header">
-            <button id="btnBackHome" class="back-btn hidden">
-                &#8592; Back
-            </button>
+            <button id="btnBackHome" class="back-btn hidden">&#8592; Back</button>
             <div class="app-title">
                 <img src="icon-192.png" alt="PostCalc Logo" class="header-logo">
                 <h1>POSTCALC</h1>
@@ -29,12 +35,10 @@
                         <h3>Savings Schemes</h3>
                         <p>Calculate TD, RD, MIS, SSA & more</p>
                     </div>
-                    
                     <div class="home-card card-insurance" id="navInsurance">
                         <h3>Life Insurance</h3>
                         <p>PLI & RPLI Endowment Quotes</p>
                     </div>
-                    
                     <div class="home-card card-treasury" id="navTreasury">
                         <h3>Treasury Manager</h3>
                         <p>B.O Daily Account & Cash Ledger</p>
@@ -48,9 +52,7 @@
                         <div class="toggle-btn active" data-cat="savings" style="font-size: 0.9rem;">Savings Schemes</div>
                         <div class="toggle-btn" data-cat="insurance" style="font-size: 0.9rem;">Life Insurance</div>
                     </div>
-
                     <h3>Select Scheme</h3>
-                    
                     <select id="schemeSelector" style="display: none;">
                         <option value="">-- Choose Scheme --</option>
                         <option value="sb">SB - Savings Account</option>
@@ -65,7 +67,6 @@
                         <option value="pli">PLI - Santosh (Endowment)</option>
                         <option value="rpli">RPLI - Gram Santosh</option>
                     </select>
-
                     <div class="custom-dropdown" id="customSchemeDropdown">
                         <div class="dropdown-header" id="dropdownHeader">
                             <span id="ddHeaderText">-- Choose Saving Scheme --</span>
@@ -85,7 +86,6 @@
                             <li data-value="rpli" data-category="insurance" class="hidden">RPLI - Gram Santosh</li>
                         </ul>
                     </div>
-                    
                     <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
                         <span>View Scheme Details</span>
                     </button>
@@ -97,7 +97,6 @@
                         <input type="date" id="dateOpen">
                         <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest & GST rules)</small>
                     </div>
-
                     <form id="calcForm">
                         <div id="input-sb" class="input-group hidden">
                             <label>Minimum Monthly Balance (₹)</label>
@@ -105,13 +104,11 @@
                             <div id="word-sb" class="word-display">Five Thousand Rupees Only</div>
                             <label>Duration (Years)</label><input type="number" id="sbTenure" value="1">
                         </div>
-
                         <div id="input-rd" class="input-group hidden">
                             <label>Monthly Deposit (₹)</label>
                             <input type="number" id="rdDeposit" value="5000" step="10" oninput="numToWord(this.value, 'word-rd')">
                             <div id="word-rd" class="word-display">Five Thousand Rupees Only</div>
                         </div>
-
                         <div id="input-pli" class="input-group hidden">
                             <label>Policy Sum Assured (₹)</label>
                             <input type="number" id="pliDeposit" value="150000" step="10000" oninput="numToWord(this.value, 'word-pli')">
@@ -126,7 +123,6 @@
                                 <option value="yearly">Yearly (2% Discount)</option>
                             </select>
                         </div>
-
                         <div id="input-rpli" class="input-group hidden">
                             <label>Policy Sum Assured (₹)</label>
                             <input type="number" id="rpliDeposit" value="100000" step="10000" oninput="numToWord(this.value, 'word-rpli')">
@@ -141,7 +137,6 @@
                                 <option value="yearly">Yearly (2% Discount)</option>
                             </select>
                         </div>
-                        
                         <div id="input-ssa" class="input-group hidden" data-mode="annual">
                             <label>Girl's Age (Years)</label>
                             <input type="number" id="ssaAge" value="1" max="10" placeholder="0-10 Years">
@@ -161,7 +156,6 @@
                                 <div id="word-ssa-m" class="word-display">Two Thousand Rupees Only</div>
                             </div>
                         </div>
-
                         <div id="input-ppf" class="input-group hidden" data-mode="annual">
                             <label>Deposit Frequency</label>
                             <div class="toggle-row">
@@ -179,7 +173,6 @@
                                 <div id="word-ppf-m" class="word-display">Five Thousand Rupees Only</div>
                             </div>
                         </div>
-
                         <div id="input-td" class="input-group hidden">
                             <label>Deposit Amount (₹)</label>
                             <input type="number" id="tdDeposit" value="100000" oninput="numToWord(this.value, 'word-td')">
@@ -192,7 +185,6 @@
                                 <option value="5" selected>5 Years (7.5%)</option>
                             </select>
                         </div>
-
                         <div id="input-mis" class="input-group hidden">
                             <label>Account Type</label>
                             <div class="toggle-row">
@@ -203,81 +195,54 @@
                             <input type="number" id="misDeposit" value="500000" oninput="numToWord(this.value, 'word-mis')">
                             <div id="word-mis" class="word-display">Five Lakh Rupees Only</div>
                         </div>
-
                         <div id="input-scss" class="input-group hidden">
                             <label>Lump Sum Deposit (₹)</label>
                             <input type="number" id="scssDeposit" value="1000000" oninput="numToWord(this.value, 'word-scss')">
                             <div id="word-scss" class="word-display">Ten Lakh Rupees Only</div>
                         </div>
-
                         <div id="input-nsc" class="input-group hidden">
                             <label>Deposit Amount (₹)</label>
                             <input type="number" id="nscDeposit" value="100000" oninput="numToWord(this.value, 'word-nsc')">
                             <div id="word-nsc" class="word-display">One Lakh Rupees Only</div>
                         </div>
-
                         <div id="input-kvp" class="input-group hidden">
                             <label>Deposit Amount (₹)</label>
                             <input type="number" id="kvpDeposit" value="50000" oninput="numToWord(this.value, 'word-kvp')">
                             <div id="word-kvp" class="word-display">Fifty Thousand Rupees Only</div>
                         </div>
                     </form>
-                    
                     <div id="warningBox" class="warning-box"></div>
                     <button class="btn btn-calc" id="btnCalculate">Calculate</button>
                 </div>
-
                 <div class="card hidden" id="resultsCard">
                     <div class="statement-header">
                         <div class="st-left">
                             <h2 id="printSchemeName">Scheme Name</h2>
                             <span class="st-sub" id="printSchemeSub">Interest Estimate Statement</span>
                         </div>
-                        <div class="st-right">
-                            <span id="printDate">Date: </span>
-                        </div>
+                        <div class="st-right"><span id="printDate">Date: </span></div>
                     </div>
-
                     <h3 class="res-title">Summary</h3>
                     <div class="summary">
-                        <div class="summary-item">
-                            <span class="lbl" id="lblTotalDep">Total Deposit</span>
-                            <span class="val" id="resTotalDep">-</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="lbl" id="lblTotalInt">Total Interest</span>
-                            <span class="val highlight" id="resTotalInt">-</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="lbl" id="lblMaturity">Maturity Amount</span>
-                            <span class="val" id="resMaturity">-</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="lbl" id="lblMatDate">Maturity Date</span>
-                            <span class="val" id="resMatDate">-</span>
-                        </div>
-                        <div class="summary-item hidden" id="rowPayout">
-                            <span class="lbl" id="lblPayout">Regular Payout</span>
-                            <span class="val" id="resPayout">-</span>
-                        </div>
+                        <div class="summary-item"><span class="lbl" id="lblTotalDep">Total Deposit</span><span class="val" id="resTotalDep">-</span></div>
+                        <div class="summary-item"><span class="lbl" id="lblTotalInt">Total Interest</span><span class="val highlight" id="resTotalInt">-</span></div>
+                        <div class="summary-item"><span class="lbl" id="lblMaturity">Maturity Amount</span><span class="val" id="resMaturity">-</span></div>
+                        <div class="summary-item"><span class="lbl" id="lblMatDate">Maturity Date</span><span class="val" id="resMatDate">-</span></div>
+                        <div class="summary-item hidden" id="rowPayout"><span class="lbl" id="lblPayout">Regular Payout</span><span class="val" id="resPayout">-</span></div>
                     </div>
-
                     <div class="table-wrapper">
                         <table id="resTable">
                             <thead id="resHead"></thead>
                             <tbody id="resBody"></tbody>
                         </table>
                     </div>
-
                     <div id="rdExtendSection" class="hidden" style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-table);">
                         <button id="btnShowExtend" class="btn btn-info-inline" style="width: 100%; margin-top: 0; background: #F8FAFC; border-color: var(--border-light); color: var(--text-main);">
                             <span>Extend This RD (Post 5-Year)</span>
                         </button>
-                        
                         <div id="rdExtendInputs" class="hidden" style="margin-top: 20px; text-align: left;">
                             <label>Old Interest Rate (%)</label>
                             <input type="number" id="rdExtRate" value="6.7" step="0.1" inputmode="decimal" style="margin-bottom: 16px;">
-
                             <label>Years Extended</label>
                             <select id="rdExtYears" class="native-select" style="margin-bottom: 16px;">
                                 <option value="1">1 Year (Total 6 Yrs)</option>
@@ -286,32 +251,22 @@
                                 <option value="4">4 Years (Total 9 Yrs)</option>
                                 <option value="5">5 Years (Total 10 Yrs)</option>
                             </select>
-
                             <label>Extension Type</label>
                             <select id="rdExtType" class="native-select" style="margin-bottom: 20px;">
                                 <option value="with">With Contributions (Keep Depositing)</option>
                                 <option value="without">Without Contributions (Stop Depositing)</option>
                             </select>
-                            
                             <button id="btnCalcExtend" class="btn btn-calc" style="margin-top: 0;">Calculate Extension</button>
                         </div>
                     </div>
-
-                    <p id="disclaimer">
-                        * Results calculated based on official Department of Posts rules. Actual values may vary.
-                    </p>
-                    
-                    <div class="footer-brand">Designed By CHETAN PATIL</div>
-
+                    <p id="disclaimer">* Results calculated based on official Department of Posts rules. Actual values may vary.</p>
+                    <div class="footer-brand">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
                     <div class="download-actions">
-                        <button class="btn btn-download btn-share" id="btnShare">
-                            Share / Save Report
-                        </button>
+                        <button class="btn btn-download btn-share" id="btnShare">Share / Save Report</button>
                     </div>
                 </div>
-            </div>
-
-                        <div id="viewTreasury" class="app-view hidden-view">
+                                    </div>
+                <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
                     <div class="treasury-header">
                         <h2>B.O Daily Account (A.C.G-22(A))</h2>
@@ -385,21 +340,6 @@
                         <input type="month" id="inputExcelMonth" class="native-select" style="margin-bottom: 20px;">
                         <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;">Download Excel (CSV)</button>
                     </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="page-footer">Designed By CHETAN PATIL</div>
-
-        <div class="modal-overlay" id="infoModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Scheme Details</h3>
-                    <button class="modal-close" id="closeInfo">×</button>
-                </div>
-                <div class="modal-body">
-                    <div id="ruleContent" class="rule-content"></div>
                 </div>
             </div>
         </div>

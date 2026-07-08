@@ -678,260 +678,325 @@ function captureAndShare() {
     });
 }
 /* =========================================
-   PART 5: TREASURY DATABASE & PDF ENGINE
+   PART 5: TREASURY DATABASE, LOCKING & EXPORT
    ========================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. PWA Offline Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.error('PWA Registration Failed:', err));
-        });
-    }
-
-    // 2. Treasury Database Logic
+    // 1. Setup Defaults & Constants
+    const DEFAULT_RECEIPTS = ["Cash from AO", "SB", "RD", "RD Default", "SSA", "IPPB", "PLI / RPLI", "VPP / COD", "EMO"];
+    const DEFAULT_PAYMENTS = ["Cash to AO", "SB Withdrawals", "IPPB Withdrawals"];
+    
     const treasuryDate = document.getElementById('treasuryDate');
     const valOpeningBal = document.getElementById('valOpeningBal');
     const valClosingBal = document.getElementById('valClosingBal');
-    
+    const receiptsList = document.getElementById('receiptsList');
+    const paymentsList = document.getElementById('paymentsList');
+
     if (treasuryDate) {
         treasuryDate.addEventListener('change', () => loadLedgerData(treasuryDate.value));
+    }
+
+    // 2. Rendering Dynamic Rows
+    function renderRows(container, items, isPayment, isLocked) {
+        container.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'trans-row';
+            
+            const isCustom = !DEFAULT_RECEIPTS.includes(item.label) && !DEFAULT_PAYMENTS.includes(item.label);
+            const labelHtml = isCustom 
+                ? `<input type="text" value="${item.label}" class="custom-label" placeholder="Description" style="flex:1; margin-right:10px; font-weight:normal;" ${isLocked ? 'disabled' : ''}>`
+                : `<label>${item.label}</label>`;
+            
+            div.innerHTML = `${labelHtml}<input type="number" class="${isPayment ? 'val-payment' : 'val-receipt'}" placeholder="0" value="${item.val > 0 ? item.val : ''}" style="width:120px;" ${isLocked ? 'disabled' : ''}>`;
+            container.appendChild(div);
+        });
+        setupTreasuryCalc();
+    }
+
+    function setLockState(isLocked) {
+        valOpeningBal.disabled = isLocked;
+        document.getElementById('btnAddReceipt').style.display = isLocked ? 'none' : 'block';
+        document.getElementById('btnAddPayment').style.display = isLocked ? 'none' : 'block';
+        
+        const btnSave = document.getElementById('btnSaveLedger');
+        if (btnSave) {
+            btnSave.disabled = isLocked;
+            btnSave.innerText = isLocked ? "Saved (Locked)" : "Save Entry";
+        }
     }
 
     function loadLedgerData(dateStr) {
         const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
         
-        // Clear all current inputs
-        document.querySelectorAll('.val-receipt, .val-payment').forEach(el => el.value = '');
-        
         if (db[dateStr]) {
-            // Load selected date's opening balance
-            valOpeningBal.value = db[dateStr].opening;
-            // Note: For 100% precision, an advanced version would repopulate individual receipt arrays here. 
-            // For now, it secures the opening/closing tracking.
+            // LOAD EXISTING LOCKED ENTRY
+            const entry = db[dateStr];
+            valOpeningBal.value = entry.opening;
+            renderRows(receiptsList, entry.receipts, false, true);
+            renderRows(paymentsList, entry.payments, true, true);
+            setLockState(true);
         } else {
-            // Auto-fetch the most recent closing balance
+            // INITIALIZE NEW DAY
             let dates = Object.keys(db).sort();
             let prevDate = dates.filter(d => d < dateStr).pop();
             valOpeningBal.value = prevDate ? db[prevDate].closing : 0;
+            
+            let defaultR = DEFAULT_RECEIPTS.map(lbl => ({label: lbl, val: 0}));
+            let defaultP = DEFAULT_PAYMENTS.map(lbl => ({label: lbl, val: 0}));
+            
+            renderRows(receiptsList, defaultR, false, false);
+            renderRows(paymentsList, defaultP, true, false);
+            setLockState(false);
         }
-        
-        // Trigger a recalculation
-        const event = new Event('input');
-        valOpeningBal.dispatchEvent(event);
+        valOpeningBal.dispatchEvent(new Event('input'));
     }
 
+    // 3. Calculator Binding
+    function calculateTreasuryBalance() {
+        let op = parseFloat(valOpeningBal.value) || 0;
+        let receipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let payments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let closing = op + receipts - payments;
+        valClosingBal.innerText = "₹" + closing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+
+    function setupTreasuryCalc() {
+        document.querySelectorAll('.val-receipt, .val-payment, #valOpeningBal').forEach(input => {
+            input.removeEventListener('input', calculateTreasuryBalance);
+            input.addEventListener('input', calculateTreasuryBalance);
+        });
+        calculateTreasuryBalance();
+    }
+
+    // 4. Save Logic
     document.getElementById('btnSaveLedger')?.addEventListener('click', () => {
         const dateStr = treasuryDate.value;
         if (!dateStr) return alert("Please select a date first.");
 
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        let receiptsData = [];
+        document.querySelectorAll('#receiptsList .trans-row').forEach(row => {
+            let labelEl = row.querySelector('label') || row.querySelector('.custom-label');
+            let label = labelEl.innerText || labelEl.value || "Other Receipt";
+            let val = parseFloat(row.querySelector('.val-receipt').value) || 0;
+            receiptsData.push({label, val});
+        });
+
+        let paymentsData = [];
+        document.querySelectorAll('#paymentsList .trans-row').forEach(row => {
+            let labelEl = row.querySelector('label') || row.querySelector('.custom-label');
+            let label = labelEl.innerText || labelEl.value || "Other Payment";
+            let val = parseFloat(row.querySelector('.val-payment').value) || 0;
+            paymentsData.push({label, val});
+        });
+
         const closingNum = parseFloat(valClosingBal.innerText.replace(/[^0-9.-]+/g,"")) || 0;
         
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
         db[dateStr] = {
             opening: parseFloat(valOpeningBal.value) || 0,
             closing: closingNum,
+            receipts: receiptsData,
+            payments: paymentsData,
             timestamp: new Date().getTime()
         };
         
         localStorage.setItem('postcalc_treasury_db', JSON.stringify(db));
-        alert('Daily Account saved successfully for ' + dateStr);
-    });
-
-    document.getElementById('btnViewHistory')?.addEventListener('click', () => {
-        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
-        const dates = Object.keys(db).sort().reverse();
-        if (dates.length === 0) return alert("No ledger history found.");
         
-        let historyStr = "Recent Closing Balances:\n\n";
-        dates.slice(0, 10).forEach(d => {
-            historyStr += `${d} : ₹${db[d].closing}\n`;
-        });
-        alert(historyStr);
+        alert("Daily Account Saved & Locked successfully for " + dateStr);
+        loadLedgerData(dateStr); // Reloads the UI in locked state
     });
 
-    // 3. Official A.C.G-22(A) PDF Generator
-              document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
-            const btn = document.getElementById('btnGenerateBODA');
-            const originalText = btn.innerText; 
-            btn.innerText = "Generating..."; 
-            btn.disabled = true;
+    // Add row buttons
+    document.getElementById('btnAddReceipt')?.addEventListener('click', () => {
+        renderRows(receiptsList, [...getFormState(receiptsList), {label: "", val: 0}], false, false);
+    });
+    document.getElementById('btnAddPayment')?.addEventListener('click', () => {
+        renderRows(paymentsList, [...getFormState(paymentsList), {label: "", val: 0}], true, false);
+    });
 
-            // Office Information Prompts (Saves locally so you only enter it once)
-            let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name (e.g., Digras BK B.O):", "");
-            if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
-            
-            let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name (e.g., Deulgaon Mahi S.O):", "");
-            if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
-            
-            let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID (e.g., SUNIL (50041216)):", "");
-            if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
+    function getFormState(container) {
+        let data = [];
+        container.querySelectorAll('.trans-row').forEach(row => {
+            let labelEl = row.querySelector('label') || row.querySelector('.custom-label');
+            let label = labelEl.innerText || labelEl.value || "";
+            let val = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+            data.push({label, val});
+        });
+        return data;
+    }
 
-            try {
-                // Word converter for Closing Balance
-                const getWords = (num) => {
-                    if (!num || num === 0) return "Zero";
-                    const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-                    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-                    const convert = (n) => {
-                        if (n < 20) return a[n];
-                        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
-                        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : "");
-                        return "";
-                    };
-                    let str = ""; let n = Math.floor(num);
-                    if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; }
-                    if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; }
-                    if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
-                    if (n > 0) { str += convert(n); }
-                    return str.trim();
-                };
+    // 5. 3-Dots Menu & Modals
+    const menuBtn = document.getElementById('btnTreasuryMenu');
+    const menuDropdown = document.getElementById('treasuryDropdown');
+    const toolsModal = document.getElementById('toolsModal');
+    const uiPastBoda = document.getElementById('uiPastBoda');
+    const uiExcel = document.getElementById('uiExcel');
+    const toolsTitle = document.getElementById('toolsModalTitle');
 
-                const printDiv = document.createElement('div');
-                printDiv.style.width = '800px'; 
-                printDiv.style.padding = '40px'; 
-                printDiv.style.background = 'white'; 
-                printDiv.style.position = 'fixed'; 
-                printDiv.style.top = '-10000px'; 
-                printDiv.style.color = 'black'; 
-                printDiv.style.fontFamily = 'Arial, sans-serif';
-                printDiv.style.fontSize = '12px';
+    menuBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('hidden');
+    });
 
-                // Data Extraction
-                let totalReceipts = 0;
-                let totalPayments = 0;
-                let tableRows = '';
-                let sno = 1;
+    document.addEventListener('click', () => {
+        if(menuDropdown && !menuDropdown.classList.contains('hidden')) menuDropdown.classList.add('hidden');
+    });
 
-                document.querySelectorAll('#receiptsList .trans-row').forEach(row => {
-                    let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
-                    let val = parseFloat(row.querySelector('.val-receipt').value) || 0;
-                    if (val > 0) {
-                        totalReceipts += val;
-                        tableRows += `<tr>
-                            <td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td>
-                            <td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td>
-                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td>
-                            <td style="border: 1px solid black; padding: 6px;"></td>
-                        </tr>`;
-                    }
-                });
+    document.getElementById('optPastBoda')?.addEventListener('click', () => {
+        uiPastBoda.classList.remove('hidden');
+        uiExcel.classList.add('hidden');
+        toolsTitle.innerText = "Download Past BODA";
+        toolsModal.classList.add('show');
+    });
 
-                document.querySelectorAll('#paymentsList .trans-row').forEach(row => {
-                    let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
-                    let val = parseFloat(row.querySelector('.val-payment').value) || 0;
-                    if (val > 0) {
-                        totalPayments += val;
-                        tableRows += `<tr>
-                            <td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td>
-                            <td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td>
-                            <td style="border: 1px solid black; padding: 6px;"></td>
-                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td>
-                        </tr>`;
-                    }
-                });
+    document.getElementById('optExcel')?.addEventListener('click', () => {
+        uiPastBoda.classList.add('hidden');
+        uiExcel.classList.remove('hidden');
+        toolsTitle.innerText = "Monthly Excel Report";
+        toolsModal.classList.add('show');
+    });
 
-                const openingBal = parseFloat(document.getElementById('valOpeningBal').value) || 0;
-                const closingBalRaw = openingBal + totalReceipts - totalPayments;
-                const reportDate = document.getElementById('treasuryDate').value.split('-').reverse().join('-');
-                
-                const now = new Date();
-                const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
+    document.getElementById('closeTools')?.addEventListener('click', () => {
+        toolsModal.classList.remove('show');
+    });
 
-                printDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                        <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
-                        <div style="width: 60%; text-align: center;">
-                            <h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2>
-                            <h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3>
-                        </div>
-                        <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">
-                            A.C.G-22 (A)<br>Preservation Period - 2 Yr
-                        </div>
-                    </div>
+    // 6. Treasury Tools Execution
+    document.getElementById('btnExecutePastBoda')?.addEventListener('click', () => {
+        const pDate = document.getElementById('inputPastBoda').value;
+        if(!pDate) return alert("Select a date.");
+        
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        if(!db[pDate]) return alert("No saved data found for " + pDate);
+        
+        // Auto navigate to the date, lock it, and trigger the main print function!
+        toolsModal.classList.remove('show');
+        treasuryDate.value = pDate;
+        loadLedgerData(pDate);
+        
+        setTimeout(() => { document.getElementById('btnGenerateBODA').click(); }, 300);
+    });
 
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
-                        <div style="flex: 1;">
-                            <div style="font-weight:bold;">To,</div>
-                            <div style="margin-top: 25px; display: flex; align-items: flex-end;">
-                                <div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div>
-                                <div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div>
-                            </div>
-                            <div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div>
-                        </div>
-                        <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">
-                            Date Stamp of<br>Branch Office
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
-                        <div style="line-height: 1.6;">
-                            <div>Office Name: <strong>${boName}</strong></div>
-                            <div>User Name: <strong>${userName}</strong></div>
-                            <div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div>
-                        </div>
-                        <div style="line-height: 1.6; text-align: right;">
-                            <div>Generation Date: ${genDate}</div>
-                            <div>Report Date: ${reportDate}</div>
-                        </div>
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
-                        <tr style="border: 1px solid black;">
-                            <td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td>
-                        </tr>
-                        <tr style="border: 1px solid black; font-weight: bold;">
-                            <th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th>
-                            <th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th>
-                            <th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th>
-                            <th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th>
-                        </tr>
-                        ${tableRows}
-                        <tr style="border: 1px solid black;">
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td>
-                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td>
-                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td>
-                        </tr>
-                        <tr style="border: 1px solid black;">
-                            <td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td>
-                        </tr>
-                        <tr style="border: 1px solid black;">
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td>
-                        </tr>
-                        <tr style="border: 1px solid black;">
-                            <td style="border: 1px solid black; padding: 6px;">In Words:</td>
-                            <td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td>
-                        </tr>
-                    </table>
-
-                    <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">
-                        Branch Postmaster, ${boName}
-                    </div>
-                    
-                    <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
-                `;
-
-                document.body.appendChild(printDiv);
-
-                html2canvas(printDiv, { scale: 2 }).then(canvas => {
-                    document.body.removeChild(printDiv); 
-                    btn.innerText = originalText; 
-                    btn.disabled = false;
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf; 
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth(); 
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); 
-                    pdf.save(`BODA_${document.getElementById('treasuryDate').value}.pdf`);
-                });
-            } catch(e) {
-                alert("PDF Engine error: " + e.message); 
-                btn.innerText = originalText; 
-                btn.disabled = false;
+    document.getElementById('btnExecuteExcel')?.addEventListener('click', () => {
+        const monthStr = document.getElementById('inputExcelMonth').value; // YYYY-MM format
+        if(!monthStr) return alert("Select a month.");
+        
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        let csv = "Date,Opening Balance,Total Receipts,Total Payments,Closing Balance\n";
+        let found = false;
+        
+        Object.keys(db).sort().forEach(dateKey => {
+            if(dateKey.startsWith(monthStr)) {
+                found = true;
+                const entry = db[dateKey];
+                const tr = entry.receipts.reduce((sum, i) => sum + i.val, 0);
+                const tp = entry.payments.reduce((sum, i) => sum + i.val, 0);
+                csv += `${dateKey},${entry.opening},${tr},${tp},${entry.closing}\n`;
             }
         });
-}); // <-- These two brackets are the missing ones that restore the entire app
+        
+        if(!found) return alert("No data found for this month.");
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `Treasury_Report_${monthStr}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toolsModal.classList.remove('show');
+    });
+
+    // 7. Official A.C.G-22(A) PDF Generator (Engine unchanged, optimized logic)
+    document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+        const btn = document.getElementById('btnGenerateBODA');
+        const originalText = btn.innerText; btn.innerText = "Generating..."; btn.disabled = true;
+
+        let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name (e.g., Digras BK B.O):", "");
+        if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
+        
+        let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name (e.g., Deulgaon Mahi S.O):", "");
+        if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
+        
+        let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID (e.g., SUNIL (50041216)):", "");
+        if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
+
+        try {
+            const getWords = (num) => {
+                if (!num || num === 0) return "Zero";
+                const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                const convert = (n) => {
+                    if (n < 20) return a[n]; if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
+                    if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : ""); return "";
+                };
+                let str = ""; let n = Math.floor(num);
+                if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; }
+                if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; }
+                if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
+                if (n > 0) { str += convert(n); }
+                return str.trim();
+            };
+
+            const printDiv = document.createElement('div');
+            printDiv.style.width = '800px'; printDiv.style.padding = '40px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '12px';
+
+            let totalReceipts = 0; let totalPayments = 0; let tableRows = ''; let sno = 1;
+
+            document.querySelectorAll('#receiptsList .trans-row').forEach(row => {
+                let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
+                let val = parseFloat(row.querySelector('.val-receipt').value) || 0;
+                if (val > 0) {
+                    totalReceipts += val;
+                    tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px;"></td></tr>`;
+                }
+            });
+
+            document.querySelectorAll('#paymentsList .trans-row').forEach(row => {
+                let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
+                let val = parseFloat(row.querySelector('.val-payment').value) || 0;
+                if (val > 0) {
+                    totalPayments += val;
+                    tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td><td style="border: 1px solid black; padding: 6px;"></td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td></tr>`;
+                }
+            });
+
+            const openingBal = parseFloat(document.getElementById('valOpeningBal').value) || 0;
+            const closingBalRaw = openingBal + totalReceipts - totalPayments;
+            const reportDate = document.getElementById('treasuryDate').value.split('-').reverse().join('-');
+            const now = new Date(); const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
+
+            printDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
+                    <div style="width: 60%; text-align: center;"><h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2><h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3></div>
+                    <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">A.C.G-22 (A)<br>Preservation Period - 2 Yr</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
+                    <div style="flex: 1;"><div style="font-weight:bold;">To,</div><div style="margin-top: 25px; display: flex; align-items: flex-end;"><div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div><div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div></div><div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div></div>
+                    <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">Date Stamp of<br>Branch Office</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+                    <div style="line-height: 1.6;"><div>Office Name: <strong>${boName}</strong></div><div>User Name: <strong>${userName}</strong></div><div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div></div>
+                    <div style="line-height: 1.6; text-align: right;"><div>Generation Date: ${genDate}</div><div>Report Date: ${reportDate}</div></div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td></tr>
+                    <tr style="border: 1px solid black; font-weight: bold;"><th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th><th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th></tr>
+                    ${tableRows}
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td style="border: 1px solid black; padding: 6px;">In Words:</td><td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td></tr>
+                </table>
+                <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">Branch Postmaster, ${boName}</div>
+                <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
+            `;
+            document.body.appendChild(printDiv);
+            html2canvas(printDiv, { scale: 2 }).then(canvas => {
+                document.body.removeChild(printDiv); btn.innerText = originalText; btn.disabled = false;
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+          

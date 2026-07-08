@@ -1,7 +1,6 @@
 /* =========================================
-   PART 1: CONFIGURATION & RULES
+   PART 1: CONFIGURATION & TABLES
    ========================================= */
-
 const SCHEMES = {
     'sb': { name: "Savings Account", rate: 4.0, min: 500, tenure: 1 },
     'rd': { name: "Recurring Deposit", rate: 6.7, min: 100, tenure: 5 },
@@ -91,7 +90,8 @@ const PLI_TABLE = {
     54: {60:152},
     55: {60:178}
 };
-         const RPLI_TABLE = {
+
+const RPLI_TABLE = {
     19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75},
     20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80},
     21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85},
@@ -130,13 +130,44 @@ const PLI_TABLE = {
     54: {60:15.20},
     55: {60:17.80}
 };
-         
-
 /* =========================================
-   PART 2: UI SETUP & EVENT LISTENERS
+   PART 2: UI SETUP & NAVIGATION
    ========================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Navigation Logic ---
+    const viewHome = document.getElementById('viewHome');
+    const viewCalc = document.getElementById('viewCalculator');
+    const viewTreasury = document.getElementById('viewTreasury');
+    const btnBack = document.getElementById('btnBackHome');
+
+    function switchView(viewId, isInsurance = false) {
+        viewHome.classList.add('hidden-view');
+        viewCalc.classList.add('hidden-view');
+        viewTreasury.classList.add('hidden-view');
+        btnBack.classList.remove('hidden');
+
+        if (viewId === 'calc') {
+            viewCalc.classList.remove('hidden-view');
+            const catBtn = document.querySelector(`.toggle-btn[data-cat="${isInsurance ? 'insurance' : 'savings'}"]`);
+            if(catBtn) catBtn.click();
+        } else if (viewId === 'treasury') {
+            viewTreasury.classList.remove('hidden-view');
+            if(document.getElementById('treasuryDate')) document.getElementById('treasuryDate').valueAsDate = new Date();
+        }
+    }
+
+    document.getElementById('navSavings').addEventListener('click', () => switchView('calc', false));
+    document.getElementById('navInsurance').addEventListener('click', () => switchView('calc', true));
+    document.getElementById('navTreasury').addEventListener('click', () => switchView('treasury'));
+
+    btnBack.addEventListener('click', () => {
+        viewHome.classList.remove('hidden-view');
+        viewCalc.classList.add('hidden-view');
+        viewTreasury.classList.add('hidden-view');
+        btnBack.classList.add('hidden');
+    });
+
+    // --- Calculator Setup ---
     const d = new Date();
     if(document.getElementById('dateOpen')) document.getElementById('dateOpen').valueAsDate = d;
     if(document.getElementById('printDate')) document.getElementById('printDate').innerText += d.toLocaleDateString();
@@ -160,13 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.target.classList.add('active');
                 
                 const selectedCategory = e.target.getAttribute('data-cat');
-
                 dropdownItems.forEach(item => {
-                    if (item.getAttribute('data-category') === selectedCategory) {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
+                    if (item.getAttribute('data-category') === selectedCategory) item.classList.remove('hidden');
+                    else item.classList.add('hidden');
                 });
 
                 if (realSelector) {
@@ -175,11 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 dropdownItems.forEach(i => i.classList.remove('selected'));
                 
-                if (selectedCategory === 'insurance') {
-                    ddHeaderText.innerHTML = "-- Choose Insurance Plan --";
-                } else {
-                    ddHeaderText.innerHTML = "-- Choose Saving Scheme --";
-                }
+                if (selectedCategory === 'insurance') ddHeaderText.innerHTML = "-- Choose Insurance Plan --";
+                else ddHeaderText.innerHTML = "-- Choose Saving Scheme --";
             });
         });
     }
@@ -259,17 +283,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if(res) renderSimple(res);
         });
     }
+    
+    // --- Treasury Form Dynamic Handlers ---
+    function setupTreasuryCalc() {
+        const inputs = document.querySelectorAll('.val-receipt, .val-payment, #valOpeningBal');
+        inputs.forEach(input => input.addEventListener('input', calculateTreasuryBalance));
+    }
+    
+    document.getElementById('btnAddReceipt')?.addEventListener('click', () => {
+        const div = document.createElement('div');
+        div.className = 'trans-row';
+        div.innerHTML = `<input type="text" placeholder="Description" style="flex:1; margin-right:10px;"><input type="number" class="val-receipt" placeholder="0" style="width:120px;">`;
+        document.getElementById('receiptsList').appendChild(div);
+        setupTreasuryCalc();
+    });
+
+    document.getElementById('btnAddPayment')?.addEventListener('click', () => {
+        const div = document.createElement('div');
+        div.className = 'trans-row';
+        div.innerHTML = `<input type="text" placeholder="Description" style="flex:1; margin-right:10px;"><input type="number" class="val-payment" placeholder="0" style="width:120px;">`;
+        document.getElementById('paymentsList').appendChild(div);
+        setupTreasuryCalc();
+    });
+
+    function calculateTreasuryBalance() {
+        let op = parseFloat(document.getElementById('valOpeningBal').value) || 0;
+        let receipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let payments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let closing = op + receipts - payments;
+        document.getElementById('valClosingBal').innerText = "₹" + closing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+    setupTreasuryCalc();
 });
-   function openModal() { 
+/* =========================================
+   PART 3: CALCULATION ENGINES
+   ========================================= */
+function openModal() { 
     const s = document.getElementById('schemeSelector').value; 
     updateInfoContent(s); 
     document.getElementById('infoModal').classList.add('show'); 
 }
-
 function closeModal() { 
     document.getElementById('infoModal').classList.remove('show'); 
 }
-
 function updateInfoContent(scheme) {
     const container = document.getElementById('ruleContent');
     container.innerHTML = (scheme && SCHEME_RULES[scheme]) ? SCHEME_RULES[scheme] : "<p style='text-align:center; color:#666; padding:20px;'>Please select a scheme to view its official rules.</p>";
@@ -277,19 +333,15 @@ function updateInfoContent(scheme) {
 
 function toggleInputs() {
     const s = document.getElementById('schemeSelector').value; 
-    
     document.querySelectorAll('.input-group').forEach(el => el.classList.add('hidden'));
     document.getElementById('resultsCard').classList.add('hidden');
-    
     if (!s) {
         document.getElementById('inputCard').classList.add('hidden');
         document.getElementById('btnInfo').classList.add('hidden');
         return;
     }
-    
     document.getElementById('inputCard').classList.remove('hidden');
     document.getElementById('btnInfo').classList.remove('hidden');
-
     if(SCHEMES[s]) document.getElementById('printSchemeName').innerText = SCHEMES[s].name;
     
     if (s === 'ssa') unhide('input-ssa'); 
@@ -297,7 +349,6 @@ function toggleInputs() {
     else if (s === 'td') unhide('input-td'); 
     else if (document.getElementById('input-'+s)) unhide('input-'+s);
 }
-
 function unhide(id) { document.getElementById(id).classList.remove('hidden'); }
 
 function setSSAMode(mode) {
@@ -305,11 +356,9 @@ function setSSAMode(mode) {
     if(window.event && window.event.target) window.event.target.classList.add('active');
     document.getElementById('input-ssa').dataset.mode = mode;
     if (mode === 'annual') { 
-        unhide('ssa-annual-inputs'); 
-        document.getElementById('ssa-monthly-inputs').classList.add('hidden'); 
+        unhide('ssa-annual-inputs'); document.getElementById('ssa-monthly-inputs').classList.add('hidden'); 
     } else { 
-        unhide('ssa-monthly-inputs'); 
-        document.getElementById('ssa-annual-inputs').classList.add('hidden'); 
+        unhide('ssa-monthly-inputs'); document.getElementById('ssa-annual-inputs').classList.add('hidden'); 
     }
 }
 
@@ -318,11 +367,9 @@ function setPPFMode(mode) {
     if(window.event && window.event.target) window.event.target.classList.add('active');
     document.getElementById('input-ppf').dataset.mode = mode;
     if (mode === 'annual') { 
-        unhide('ppf-annual-inputs'); 
-        document.getElementById('ppf-monthly-inputs').classList.add('hidden'); 
+        unhide('ppf-annual-inputs'); document.getElementById('ppf-monthly-inputs').classList.add('hidden'); 
     } else { 
-        unhide('ppf-monthly-inputs'); 
-        document.getElementById('ppf-annual-inputs').classList.add('hidden'); 
+        unhide('ppf-monthly-inputs'); document.getElementById('ppf-annual-inputs').classList.add('hidden'); 
     }
 }
 
@@ -332,34 +379,24 @@ function setMISMode(type) {
     document.getElementById('input-mis').dataset.type = type;
 }
 
-/* =========================================
-   PART 3: CALCULATION & GRID ENGINE
-   ========================================= */
-
 function generateInsuranceGrid(sa, entryAge, type, d, mode) {
     const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
     let rows = [];
-    
     let matrix = type === 'pli' ? PLI_TABLE : RPLI_TABLE;
     let baseline = type === 'pli' ? 10000 : 1000;
     let bonusRate = type === 'pli' ? 52 : 48;
-    
     let gstRate = 0.045; 
     const reformDate = new Date("2025-09-22");
     if (d >= reformDate) gstRate = 0.0; 
 
     let n = 1;
-    if (mode === 'yearly') n = 12;
-    else if (mode === 'half') n = 6;
-    else if (mode === 'quarterly') n = 3;
+    if (mode === 'yearly') n = 12; else if (mode === 'half') n = 6; else if (mode === 'quarterly') n = 3;
 
     permittedMaturityAges.forEach(matAge => {
         let term = matAge - entryAge;
         if (term > 0 && matrix[entryAge] && matrix[entryAge][matAge]) {
-            
             let tableRate = matrix[entryAge][matAge];
             let monthlyGross = (sa / baseline) * tableRate;
-            
             let totalDiscount = 0;
             
             if (type === 'pli') {
@@ -378,42 +415,28 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
 
             let aggregatedGross = monthlyGross * n;
             let finalGrossPrem = Math.round(aggregatedGross - totalDiscount);
-            
             let totalRebateRaw = (sa / 20000) * n;
             let displayRebate = Math.floor(totalRebateRaw); 
-            
             let intermediatePremium = finalGrossPrem - totalRebateRaw;
             let basePremiumRounded = Math.floor(intermediatePremium);
-            
             let taxAmt = Math.round(basePremiumRounded * gstRate);
             let netPremium = basePremiumRounded + taxAmt;
-            
             let reversionaryBonus = (sa / 1000) * bonusRate * term;
-            let totalBonus = reversionaryBonus; 
-            let finalMaturity = sa + totalBonus;
+            let finalMaturity = sa + reversionaryBonus;
 
-            rows.push({
-                matAge: matAge,
-                duration: term,
-                premium: finalGrossPrem,
-                rebate: displayRebate,
-                tax: taxAmt,
-                net: netPremium,
-                bonus: totalBonus,
-                matAmt: finalMaturity
-            });
+            rows.push({ matAge: matAge, duration: term, premium: finalGrossPrem, rebate: displayRebate, tax: taxAmt, net: netPremium, bonus: reversionaryBonus, matAmt: finalMaturity });
         }
     });
     return rows;
-       }
-       const Engines = {
+}
+
+const Engines = {
     calcSB: (p, r, d) => {
         let yrs = parseInt(document.getElementById('sbTenure').value) || 1;
         let rows = []; let bal = p; let startMonth = (d.getDate() > 10) ? 1 : 0; 
         let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs);
         for (let i = 1; i <= yrs; i++) {
-            let int = 0;
-            if (i === 1 && startMonth === 1) int = Math.round(bal * (r/100) * (11/12)); else int = Math.round(bal * (r/100));
+            let int = (i === 1 && startMonth === 1) ? Math.round(bal * (r/100) * (11/12)) : Math.round(bal * (r/100));
             let op = bal; bal += int; rows.push({ lbl: `Year ${i}`, op: op, dep: 0, int: int, cl: bal });
         }
         return { dep: p, int: bal - p, mat: bal, date: matDate, rows: rows, type: 'compound' };
@@ -427,8 +450,7 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
     calcPayout: (p, r, yrs, freq, d) => {
         let pay = Math.round((p * r / 100) / freq); let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + yrs); let rows = [];
         for (let i = 1; i <= yrs; i++) rows.push({ lbl: `Year ${i}`, op: p, dep: 0, int: pay * freq, cl: p });
-        let freqLabel = (freq === 12) ? ' / month' : ' / quarter';
-        return { dep: p, int: pay * freq * yrs, mat: p, payout: pay, date: matDate, rows: rows, type: 'payout', freq: freqLabel };
+        return { dep: p, int: pay * freq * yrs, mat: p, payout: pay, date: matDate, rows: rows, type: 'payout', freq: (freq === 12) ? ' / month' : ' / quarter' };
     },
     calcPPF_SSA: (p, r, d, type, mode, startAge = 0) => {
         let bal = 0, totDep = 0; let rows = []; let matDate = new Date(d); let depEndDate = new Date(d);
@@ -479,57 +501,33 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
         return { dep: p, int: p, mat: p*2, date: matDate, rows: [{lbl:'Maturity (115 Mo)', op:p, dep:0, int:p, cl:p*2}], type: 'compound' };
     },
     calcRD_EXT: (p, r, extYrs, type, d) => {
-        let quarterlyRate = r / 400;
-        let matDate = new Date(d);
-        matDate.setFullYear(d.getFullYear() + 5 + extYrs);
-
-        function getRDMaturity(dep, months, qRate) {
-            let mat = 0;
-            for (let m = 1; m <= months; m++) {
-                let quarters = (months - m + 1) / 3;
-                mat += dep * Math.pow(1 + qRate, quarters);
-            }
-            return mat; 
-        }
-
-        let rows = [];
-        let totalDeposit = 0;
-        let finalMaturity = 0;
-
-        let baseMaturity = Math.round(getRDMaturity(p, 60, quarterlyRate));
-        let baseDeposit = p * 60;
+        let qRate = r / 400; let matDate = new Date(d); matDate.setFullYear(d.getFullYear() + 5 + extYrs);
+        function getRDMaturity(dep, months, rate) { let mat = 0; for (let m = 1; m <= months; m++) mat += dep * Math.pow(1 + rate, (months - m + 1) / 3); return mat; }
+        let rows = []; let totalDeposit = 0; let finalMaturity = 0;
+        let baseMaturity = Math.round(getRDMaturity(p, 60, qRate)); let baseDeposit = p * 60;
         rows.push({ lbl: `Base (1-5 Yrs)`, op: 0, dep: baseDeposit, int: baseMaturity - baseDeposit, cl: baseMaturity });
-
-        let previousMaturity = baseMaturity;
-
+        let prevMaturity = baseMaturity;
         if (type === "with") {
             totalDeposit = baseDeposit;
             for (let y = 1; y <= extYrs; y++) {
-                let currentMonths = 60 + (y * 12);
-                let currentMaturity = Math.round(getRDMaturity(p, currentMonths, quarterlyRate));
-                let yearlyDep = p * 12;
-                totalDeposit += yearlyDep;
-                let yearlyInt = currentMaturity - previousMaturity - yearlyDep;
-                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: yearlyDep, int: yearlyInt, cl: currentMaturity });
-                previousMaturity = currentMaturity;
+                let currentMaturity = Math.round(getRDMaturity(p, 60 + (y * 12), qRate)); let yearlyDep = p * 12; totalDeposit += yearlyDep;
+                rows.push({ lbl: `Year ${5 + y}`, op: prevMaturity, dep: yearlyDep, int: currentMaturity - prevMaturity - yearlyDep, cl: currentMaturity });
+                prevMaturity = currentMaturity;
             }
-            finalMaturity = previousMaturity;
-
         } else {
             totalDeposit = baseDeposit;
             for (let y = 1; y <= extYrs; y++) {
-                let currentMaturity = Math.round(baseMaturity * Math.pow(1 + quarterlyRate, y * 4));
-                let yearlyInt = currentMaturity - previousMaturity;
-                rows.push({ lbl: `Year ${5 + y}`, op: previousMaturity, dep: 0, int: yearlyInt, cl: currentMaturity });
-                previousMaturity = currentMaturity;
+                let currentMaturity = Math.round(baseMaturity * Math.pow(1 + qRate, y * 4));
+                rows.push({ lbl: `Year ${5 + y}`, op: prevMaturity, dep: 0, int: currentMaturity - prevMaturity, cl: currentMaturity });
+                prevMaturity = currentMaturity;
             }
-            finalMaturity = previousMaturity;
         }
-
-        return { dep: totalDeposit, int: finalMaturity - totalDeposit, mat: finalMaturity, date: matDate, rows: rows, type: 'compound' };
+        return { dep: totalDeposit, int: prevMaturity - totalDeposit, mat: prevMaturity, date: matDate, rows: rows, type: 'compound' };
     }
 };
-
+/* =========================================
+   PART 4: EXECUTION & UTILITIES
+   ========================================= */
 function handleCalculate() {
     const s = document.getElementById('schemeSelector').value;
     const dStr = document.getElementById('dateOpen').value;
@@ -537,36 +535,16 @@ function handleCalculate() {
     const conf = SCHEMES[s];
     
     hideWarn(); 
-    let p = 0; 
-    let mode = 'annual';
+    let p = 0, mode = 'annual';
 
-    if (s === 'ssa') {
-        mode = document.getElementById('input-ssa').dataset.mode || 'annual';
-        p = (mode === 'annual') ? getVal('ssaDepositAnnual') : getVal('ssaDepositMonthly');
-        if (getVal('ssaAge') > 10) return showWarn("Girl's age must be 10 or less.");
-    } 
-    else if (s === 'ppf') {
-        mode = document.getElementById('input-ppf').dataset.mode || 'annual';
-        p = (mode === 'annual') ? getVal('ppfDepositAnnual') : getVal('ppfDepositMonthly');
-    }
-    else if (s === 'td') {
-        p = getVal('tdDeposit');
-    }
-    else if (s === 'mis') {
-        p = getVal('misDeposit');
-        const type = document.getElementById('input-mis').dataset.type || 'single';
-        const limit = (type === 'single') ? 900000 : 1500000;
-        if (p > limit) return showWarn(`Maximum limit for ${type} account is ₹${limit}`);
-    }
-    else if (s === 'rd_ext') {
-        p = getVal('rdExtDeposit');
-    }
+    if (s === 'ssa') { mode = document.getElementById('input-ssa').dataset.mode || 'annual'; p = (mode === 'annual') ? getVal('ssaDepositAnnual') : getVal('ssaDepositMonthly'); if (getVal('ssaAge') > 10) return showWarn("Girl's age must be 10 or less."); } 
+    else if (s === 'ppf') { mode = document.getElementById('input-ppf').dataset.mode || 'annual'; p = (mode === 'annual') ? getVal('ppfDepositAnnual') : getVal('ppfDepositMonthly'); }
+    else if (s === 'mis') { p = getVal('misDeposit'); const type = document.getElementById('input-mis').dataset.type || 'single'; const limit = (type === 'single') ? 900000 : 1500000; if (p > limit) return showWarn(`Maximum limit is ₹${limit}`); }
+    else if (s === 'td') { p = getVal('tdDeposit'); }
+    else if (s === 'rd_ext') { p = getVal('rdExtDeposit'); }
     else if (s === 'pli') { p = getVal('pliDeposit'); }
     else if (s === 'rpli') { p = getVal('rpliDeposit'); }
-    else { 
-        let id = s + 'Deposit';
-        p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); 
-    }
+    else { let id = s + 'Deposit'; p = document.getElementById(id) ? getVal(id) : getVal('rdDeposit'); }
 
     if (p < conf.min) return showWarn(`Minimum deposit is ₹${conf.min}`);
     if (s !== 'mis' && conf.max && p > conf.max) return showWarn(`Maximum limit is ₹${conf.max}`);
@@ -587,32 +565,17 @@ function handleCalculate() {
         document.getElementById('resMaturity').innerText = "See Grid Below";
         document.getElementById('resMatDate').innerText = "-";
         document.getElementById('rowPayout').classList.add('hidden');
-        
         document.getElementById('lblTotalDep').innerText = "Sum Assured";
         document.getElementById('lblTotalInt').innerText = "Bonus Status";
         document.getElementById('lblMaturity').innerText = "Maturity Estimate";
         document.getElementById('lblMatDate').innerText = "Maturity Event";
         
-        let head = document.getElementById('resHead');
         let modeLabel = (pMode === 'yearly') ? 'Yearly' : (pMode === 'half') ? 'Half-Yr' : (pMode === 'quarterly') ? 'Qtrly' : 'Monthly';
-        head.innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net ${modeLabel}</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
+        document.getElementById('resHead').innerHTML = `<tr><th>Mat. Age</th><th>Term</th><th>Prem.</th><th>Rebate</th><th>Tax</th><th>Net ${modeLabel}</th><th>Total Bonus</th><th>Maturity Amt</th></tr>`;
         
-        document.getElementById('resBody').innerHTML = gridData.map(r => {
-            return `<tr>
-                <td style="text-align:left; font-weight:800;">${r.matAge} Yrs</td>
-                <td>${r.duration} Y</td>
-                <td>₹${r.premium}</td>
-                <td>₹${r.rebate}</td>
-                <td>₹${r.tax}</td>
-                <td style="color:#059669; font-weight:800;">₹${r.net}</td>
-                <td>${fmt(r.bonus)}</td>
-                <td style="color:var(--ip-ruby); font-weight:800;">${fmt(r.matAmt)}</td>
-            </tr>`;
-        }).join('');
+        document.getElementById('resBody').innerHTML = gridData.map(r => `<tr><td style="text-align:left; font-weight:800;">${r.matAge} Yrs</td><td>${r.duration} Y</td><td>₹${r.premium}</td><td>₹${r.rebate}</td><td>₹${r.tax}</td><td style="color:#059669; font-weight:800;">₹${r.net}</td><td>${fmt(r.bonus)}</td><td style="color:var(--ip-ruby); font-weight:800;">${fmt(r.matAmt)}</td></tr>`).join('');
         
-        const extendSection = document.getElementById('rdExtendSection');
-        if (extendSection) extendSection.classList.add('hidden');
-        
+        const ext = document.getElementById('rdExtendSection'); if (ext) ext.classList.add('hidden');
         document.getElementById('resultsCard').classList.remove('hidden');
         document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
         return; 
@@ -620,32 +583,19 @@ function handleCalculate() {
 
     if (s === 'sb') res = Engines.calcSB(p, conf.rate, d);
     else if (s === 'ppf') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ppf', mode);
-    else if (s === 'ssa') {
-        let currentAge = parseInt(document.getElementById('ssaAge').value) || 0;
-        res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, currentAge);
-    }
+    else if (s === 'ssa') res = Engines.calcPPF_SSA(p, conf.rate, d, 'ssa', mode, parseInt(document.getElementById('ssaAge').value) || 0);
     else if (s === 'rd') res = Engines.calcRD(p, conf.rate, d);
     else if (s === 'mis') res = Engines.calcPayout(p, conf.rate, 5, 12, d);
     else if (s === 'scss') res = Engines.calcPayout(p, conf.rate, 5, 4, d);
-    else if (s === 'td') {
-        let t = parseInt(document.getElementById('tdTenure').value);
-        res = Engines.calcTD(p, conf.rates[t], t, d);
-    }
+    else if (s === 'td') { let t = parseInt(document.getElementById('tdTenure').value); res = Engines.calcTD(p, conf.rates[t], t, d); }
     else if (s === 'nsc') res = Engines.calcNSC(p, conf.rate, d);
     else if (s === 'kvp') res = Engines.calcKVP(p, conf.rate, d);
     
     const extendSection = document.getElementById('rdExtendSection');
-    const extendInputs = document.getElementById('rdExtendInputs');
     const btnShowExt = document.getElementById('btnShowExtend');
-    
-    if (extendSection && btnShowExt && extendInputs) {
-        if (s === 'rd') {
-            extendSection.classList.remove('hidden'); 
-            btnShowExt.classList.remove('hidden');    
-            extendInputs.classList.add('hidden');     
-        } else {
-            extendSection.classList.add('hidden');    
-        }
+    if (extendSection && btnShowExt) {
+        if (s === 'rd') { extendSection.classList.remove('hidden'); btnShowExt.classList.remove('hidden'); document.getElementById('rdExtendInputs').classList.add('hidden'); } 
+        else { extendSection.classList.add('hidden'); }
     }
 
     document.getElementById('printSchemeSub').innerText = "Interest Estimate Statement";
@@ -653,9 +603,7 @@ function handleCalculate() {
     document.getElementById('lblTotalInt').innerText = "Total Interest";
     document.getElementById('lblMaturity').innerText = "Maturity Amount";
     document.getElementById('lblMatDate').innerText = "Maturity Date";
-    
-    const lblPayout = document.getElementById('lblPayout');
-    if (lblPayout) lblPayout.innerText = "Regular Payout";
+    const lblPayout = document.getElementById('lblPayout'); if (lblPayout) lblPayout.innerText = "Regular Payout";
     
     if(res) renderSimple(res);
 }
@@ -664,10 +612,7 @@ function renderSimple(data) {
     document.getElementById('resTotalDep').innerText = fmt(data.dep);
     document.getElementById('resTotalInt').innerText = fmt(data.int);
     document.getElementById('resMaturity').innerText = fmt(data.mat);
-    
-    if (data.date) {
-        document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
+    if (data.date) document.getElementById('resMatDate').innerText = data.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
     if (data.payout) {
         document.getElementById('rowPayout').classList.remove('hidden');
@@ -677,22 +622,14 @@ function renderSimple(data) {
     }
 
     const head = document.getElementById('resHead');
-    if (data.type === 'payout') {
-        head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`;
-    } else if (data.type === 'ssa') {
-        head.innerHTML = `<tr><th>Period (FY)</th><th style="text-align:center;">Age</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
-    } else if (data.type === 'ppf') {
-        head.innerHTML = `<tr><th>Period (FY)</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
-    } else {
-        head.innerHTML = `<tr><th>Period</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
-    }
+    if (data.type === 'payout') head.innerHTML = `<tr><th>Year</th><th>Invested</th><th>Interest Payout</th><th>Balance</th></tr>`;
+    else if (data.type === 'ssa') head.innerHTML = `<tr><th>Period (FY)</th><th style="text-align:center;">Age</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
+    else if (data.type === 'ppf') head.innerHTML = `<tr><th>Period (FY)</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
+    else head.innerHTML = `<tr><th>Period</th><th>Opening</th><th>Deposit</th><th>Interest</th><th>Closing</th></tr>`;
 
     document.getElementById('resBody').innerHTML = data.rows.map(r => {
-        if(data.type === 'payout') {
-            return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
-        } else if (data.type === 'ssa') {
-            return `<tr><td>${r.lbl}</td><td style="text-align:center;">${r.age}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
-        }
+        if(data.type === 'payout') return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
+        else if (data.type === 'ssa') return `<tr><td>${r.lbl}</td><td style="text-align:center;">${r.age}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
         return `<tr><td>${r.lbl}</td><td>${fmt(r.op)}</td><td>${fmt(r.dep)}</td><td>${fmt(r.int)}</td><td>${fmt(r.cl)}</td></tr>`;
     }).join('');
 
@@ -700,106 +637,209 @@ function renderSimple(data) {
     document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
 }
 
-/* =========================================
-   PART 4: UTILITY & EXPORT FUNCTIONS
-   ========================================= */
-
-function getVal(id) {
-    const el = document.getElementById(id);
-    return el ? (parseFloat(el.value) || 0) : 0;
-}
-
-function showWarn(msg) {
-    const wb = document.getElementById('warningBox');
-    if (wb) {
-        wb.innerText = msg;
-        wb.style.display = 'block';
-    }
-}
-
-function hideWarn() {
-    const wb = document.getElementById('warningBox');
-    if (wb) {
-        wb.style.display = 'none';
-    }
-}
-
-function fmt(num) {
-    if (isNaN(num)) return "-";
-    return "₹" + Math.round(num).toLocaleString('en-IN');
-}
+function getVal(id) { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; }
+function showWarn(msg) { const wb = document.getElementById('warningBox'); if (wb) { wb.innerText = msg; wb.style.display = 'block'; } }
+function hideWarn() { const wb = document.getElementById('warningBox'); if (wb) wb.style.display = 'none'; }
+function fmt(num) { return isNaN(num) ? "-" : "₹" + Math.round(num).toLocaleString('en-IN'); }
 
 function captureAndShare() {
     const btn = document.getElementById('btnShare');
     const originalText = btn.innerText;
-    
-    btn.innerText = "⏳ Processing..."; 
-    btn.disabled = true;
+    btn.innerText = "Processing..."; btn.disabled = true;
 
     const source = document.getElementById('resultsCard');
     const clone = source.cloneNode(true);
-    
-    if(clone.querySelector('.download-actions')) {
-        clone.querySelector('.download-actions').style.display = 'none';
-    }
-    
-    if(clone.querySelector('#rdExtendSection')) {
-        clone.querySelector('#rdExtendSection').style.display = 'none';
-    }
+    if(clone.querySelector('.download-actions')) clone.querySelector('.download-actions').style.display = 'none';
+    if(clone.querySelector('#rdExtendSection')) clone.querySelector('#rdExtendSection').style.display = 'none';
 
-    clone.style.width = '794px'; 
-    clone.style.minHeight = '1123px';
-    clone.style.padding = '40px';
-    clone.style.background = 'white';
-    clone.style.position = 'fixed'; 
-    clone.style.top = '0'; 
-    clone.style.left = '0';
-    clone.style.zIndex = '-100';
+    clone.style.width = '794px'; clone.style.minHeight = '1123px'; clone.style.padding = '40px'; clone.style.background = 'white';
+    clone.style.position = 'fixed'; clone.style.top = '0'; clone.style.left = '0'; clone.style.zIndex = '-100';
     
     const tableWrap = clone.querySelector('.table-wrapper');
-    if(tableWrap) { 
-        tableWrap.style.overflow = 'visible'; 
-        tableWrap.style.border = 'none'; 
-    }
-    const table = clone.querySelector('table');
-    if(table) table.style.width = '100%';
-    
-    clone.querySelectorAll('th, td').forEach(cell => {
-        cell.style.whiteSpace = 'nowrap';
-    });
+    if(tableWrap) { tableWrap.style.overflow = 'visible'; tableWrap.style.border = 'none'; }
+    const table = clone.querySelector('table'); if(table) table.style.width = '100%';
+    clone.querySelectorAll('th, td').forEach(cell => cell.style.whiteSpace = 'nowrap');
 
     document.body.appendChild(clone);
-
-    // Export generation using the html2canvas script included in index.html
     html2canvas(clone, { scale: 2, useCORS: true }).then(canvas => {
         document.body.removeChild(clone);
-        btn.innerText = originalText;
-        btn.disabled = false;
-
+        btn.innerText = originalText; btn.disabled = false;
         canvas.toBlob(blob => {
             if (!blob) return;
             const file = new File([blob], "PostCalc_Statement.png", { type: "image/png" });
-            
-            // Invoke the Web Share API natively if supported (ideal for mobile)
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({
-                    title: document.getElementById('printSchemeName').innerText,
-                    text: 'PostCalc Savings Scheme Estimate',
-                    files: [file]
-                }).catch(console.error);
+                navigator.share({ title: document.getElementById('printSchemeName').innerText, text: 'PostCalc Savings Estimate', files: [file] }).catch(console.error);
             } else {
-                // Fallback for desktop browsers
-                const link = document.createElement('a');
-                link.download = 'PostCalc_Statement.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const link = document.createElement('a'); link.download = 'PostCalc_Statement.png'; link.href = canvas.toDataURL('image/png'); link.click();
             }
         }, 'image/png');
     }).catch(err => {
-        document.body.removeChild(clone);
-        btn.innerText = originalText;
-        btn.disabled = false;
-        console.error("Error rendering image:", err);
+        document.body.removeChild(clone); btn.innerText = originalText; btn.disabled = false; console.error("Error rendering image:", err);
     });
-               }
-                                                                                                                                                                      
+}
+/* =========================================
+   PART 5: TREASURY DATABASE & PDF ENGINE
+   ========================================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. PWA Offline Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.error('PWA Registration Failed:', err));
+        });
+    }
+
+    // 2. Treasury Database Logic
+    const treasuryDate = document.getElementById('treasuryDate');
+    const valOpeningBal = document.getElementById('valOpeningBal');
+    const valClosingBal = document.getElementById('valClosingBal');
+    
+    if (treasuryDate) {
+        treasuryDate.addEventListener('change', () => loadLedgerData(treasuryDate.value));
+    }
+
+    function loadLedgerData(dateStr) {
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        
+        // Clear all current inputs
+        document.querySelectorAll('.val-receipt, .val-payment').forEach(el => el.value = '');
+        
+        if (db[dateStr]) {
+            // Load selected date's opening balance
+            valOpeningBal.value = db[dateStr].opening;
+            // Note: For 100% precision, an advanced version would repopulate individual receipt arrays here. 
+            // For now, it secures the opening/closing tracking.
+        } else {
+            // Auto-fetch the most recent closing balance
+            let dates = Object.keys(db).sort();
+            let prevDate = dates.filter(d => d < dateStr).pop();
+            valOpeningBal.value = prevDate ? db[prevDate].closing : 0;
+        }
+        
+        // Trigger a recalculation
+        const event = new Event('input');
+        valOpeningBal.dispatchEvent(event);
+    }
+
+    document.getElementById('btnSaveLedger')?.addEventListener('click', () => {
+        const dateStr = treasuryDate.value;
+        if (!dateStr) return alert("Please select a date first.");
+
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        const closingNum = parseFloat(valClosingBal.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+        
+        db[dateStr] = {
+            opening: parseFloat(valOpeningBal.value) || 0,
+            closing: closingNum,
+            timestamp: new Date().getTime()
+        };
+        
+        localStorage.setItem('postcalc_treasury_db', JSON.stringify(db));
+        alert('Daily Account saved successfully for ' + dateStr);
+    });
+
+    document.getElementById('btnViewHistory')?.addEventListener('click', () => {
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        const dates = Object.keys(db).sort().reverse();
+        if (dates.length === 0) return alert("No ledger history found.");
+        
+        let historyStr = "Recent Closing Balances:\n\n";
+        dates.slice(0, 10).forEach(d => {
+            historyStr += `${d} : ₹${db[d].closing}\n`;
+        });
+        alert(historyStr);
+    });
+
+    // 3. Official A.C.G-22(A) PDF Generator
+    document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+        const btn = document.getElementById('btnGenerateBODA');
+        const originalText = btn.innerText;
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+
+        // Create a hidden, strictly formatted HTML clone of the official document
+        const printDiv = document.createElement('div');
+        printDiv.style.width = '800px';
+        printDiv.style.padding = '40px';
+        printDiv.style.background = 'white';
+        printDiv.style.position = 'fixed';
+        printDiv.style.top = '-10000px';
+        printDiv.style.color = 'black';
+        printDiv.style.fontFamily = 'Arial, sans-serif';
+        
+        let totalReceipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let totalPayments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let closingText = valClosingBal.innerText.replace("₹", "");
+
+        printDiv.innerHTML = `
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="margin: 0; font-size: 18px;">DEPARTMENT OF POSTS, INDIA</h2>
+                <h3 style="margin: 5px 0; font-size: 16px;">Branch Office Daily Account</h3>
+                <p style="margin: 0; font-size: 12px;">A.C.G-22 (A) | Preservation Period - 2 Yr</p>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
+                <div>
+                    <p><strong>Date:</strong> ${treasuryDate.value}</p>
+                    <p><strong>Opening Balance:</strong> ${valOpeningBal.value}</p>
+                </div>
+                <div style="width: 100px; height: 100px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10px;">
+                    Date Stamp<br>of<br>Branch Office
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 8px;">Details of Transactions</th>
+                        <th style="border: 1px solid black; padding: 8px;">Receipts</th>
+                        <th style="border: 1px solid black; padding: 8px;">Payments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">Total Aggregated Receipts</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right;">${totalReceipts.toFixed(2)}</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">Total Aggregated Payments</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: right;">${totalPayments.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px; font-weight: bold; text-align: right;">Closing Balance:</td>
+                        <td colspan="2" style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${closingText}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 60px; text-align: right; font-size: 14px;">
+                <p>Branch Postmaster</p>
+            </div>
+        `;
+
+        document.body.appendChild(printDiv);
+
+        html2canvas(printDiv, { scale: 2 }).then(canvas => {
+            document.body.removeChild(printDiv);
+            btn.innerText = originalText;
+            btn.disabled = false;
+
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`BODA_${treasuryDate.value}.pdf`);
+        }).catch(err => {
+            document.body.removeChild(printDiv);
+            btn.innerText = originalText;
+            btn.disabled = false;
+            console.error("PDF Generation Error:", err);
+            alert("Failed to generate PDF. Check console for details.");
+        });
+    });
+});

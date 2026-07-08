@@ -1,84 +1,50 @@
-// ✅ Version v40 (Silent Auto-Update Strategy)
-const CACHE_NAME = "postcalc-cache-v40";
-
-const PRECACHE_ASSETS = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png"
+const CACHE_NAME = 'postcalc-v2.0';
+const ASSETS_TO_CACHE = [
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './icon-192.png',
+    './manifest.json'
 ];
 
-const CDN_URLS = [
-  "cdnjs.cloudflare.com",
-  "fonts.googleapis.com",
-  "fonts.gstatic.com"
-];
-
-// ✅ Install Event: FORCE IMMEDIATE UPDATE
-self.addEventListener("install", (event) => {
-  self.skipWaiting(); // <--- THIS MAKES IT INSTANT AND SILENT
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
-    })
-  );
+// Install Event: Cache the new files
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS_TO_CACHE);
+        })
+    );
+    self.skipWaiting(); // Force the waiting service worker to become the active service worker
 });
 
-// ✅ Activate Event: Clean up old caches immediately
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
+// Activate Event: Delete the old v1.0 caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cache) => {
+                    if (cache !== CACHE_NAME) {
+                        console.log('Clearing old cache:', cache);
+                        return caches.delete(cache);
+                    }
+                })
+            );
         })
-      );
-    })
-  );
-  self.clients.claim(); // Take control instantly
+    );
+    self.clients.claim();
 });
 
-// ✅ Fetch Event: Network First for HTML, Cache for Assets
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+// Fetch Event: Serve from cache, fallback to network
+self.addEventListener('fetch', (event) => {
+    // Ignore external API requests (like CDNs for html2canvas/jspdf)
+    if (!event.request.url.startsWith(self.location.origin)) {
+        return;
+    }
 
-  const url = new URL(event.request.url);
-  const isLocal = url.origin === self.location.origin;
-  const isCDN = CDN_URLS.some(domain => url.hostname.includes(domain));
-
-  if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
         })
-        .catch(() => caches.match("./index.html"))
     );
-    return;
-  }
-
-  if (isLocal || isCDN) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
-            }
-            return networkResponse;
-          })
-          .catch(() => {});
-        return cachedResponse || fetchPromise;
-      })
-    );
-  }
 });

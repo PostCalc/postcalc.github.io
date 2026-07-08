@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <script>
-        // Cache Buster to ensure you get the newest version
+        // Cache Buster to ensure you get the newest version instantly
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let r of registrations) { r.unregister(); }
@@ -95,7 +95,6 @@
                     <div style="margin-bottom: 20px;">
                         <label>Date of Opening / First Deposit</label>
                         <input type="date" id="dateOpen">
-                        <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest & GST rules)</small>
                     </div>
                     <form id="calcForm">
                         <div id="input-sb" class="input-group hidden">
@@ -213,8 +212,8 @@
                     </form>
                     <div id="warningBox" class="warning-box"></div>
                     <button class="btn btn-calc" id="btnCalculate">Calculate</button>
-                </div>
-                <div class="card hidden" id="resultsCard">
+    </div>
+                                                <div class="card hidden" id="resultsCard">
                     <div class="statement-header">
                         <div class="st-left">
                             <h2 id="printSchemeName">Scheme Name</h2>
@@ -265,8 +264,9 @@
                         <button class="btn btn-download btn-share" id="btnShare">Share / Save Report</button>
                     </div>
                 </div>
-                                    </div>
-                <div id="viewTreasury" class="app-view hidden-view">
+            </div>
+
+            <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
                     <div class="treasury-header">
                         <h2>B.O Daily Account (A.C.G-22(A))</h2>

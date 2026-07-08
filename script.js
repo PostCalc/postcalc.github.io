@@ -751,95 +751,187 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 3. Official A.C.G-22(A) PDF Generator
-    document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
-        const btn = document.getElementById('btnGenerateBODA');
-        const originalText = btn.innerText;
-        btn.innerText = "Generating...";
-        btn.disabled = true;
+            document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+            const btn = document.getElementById('btnGenerateBODA');
+            const originalText = btn.innerText; 
+            btn.innerText = "Generating..."; 
+            btn.disabled = true;
 
-        // Create a hidden, strictly formatted HTML clone of the official document
-        const printDiv = document.createElement('div');
-        printDiv.style.width = '800px';
-        printDiv.style.padding = '40px';
-        printDiv.style.background = 'white';
-        printDiv.style.position = 'fixed';
-        printDiv.style.top = '-10000px';
-        printDiv.style.color = 'black';
-        printDiv.style.fontFamily = 'Arial, sans-serif';
-        
-        let totalReceipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
-        let totalPayments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
-        let closingText = valClosingBal.innerText.replace("₹", "");
-
-        printDiv.innerHTML = `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="margin: 0; font-size: 18px;">DEPARTMENT OF POSTS, INDIA</h2>
-                <h3 style="margin: 5px 0; font-size: 16px;">Branch Office Daily Account</h3>
-                <p style="margin: 0; font-size: 12px;">A.C.G-22 (A) | Preservation Period - 2 Yr</p>
-            </div>
+            // Office Information Prompts (Saves locally so you only enter it once)
+            let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name (e.g., Digras BK B.O):", "");
+            if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
             
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
-                <div>
-                    <p><strong>Date:</strong> ${treasuryDate.value}</p>
-                    <p><strong>Opening Balance:</strong> ${valOpeningBal.value}</p>
-                </div>
-                <div style="width: 100px; height: 100px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10px;">
-                    Date Stamp<br>of<br>Branch Office
-                </div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid black; padding: 8px;">Details of Transactions</th>
-                        <th style="border: 1px solid black; padding: 8px;">Receipts</th>
-                        <th style="border: 1px solid black; padding: 8px;">Payments</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border: 1px solid black; padding: 8px;">Total Aggregated Receipts</td>
-                        <td style="border: 1px solid black; padding: 8px; text-align: right;">${totalReceipts.toFixed(2)}</td>
-                        <td style="border: 1px solid black; padding: 8px;"></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid black; padding: 8px;">Total Aggregated Payments</td>
-                        <td style="border: 1px solid black; padding: 8px;"></td>
-                        <td style="border: 1px solid black; padding: 8px; text-align: right;">${totalPayments.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid black; padding: 8px; font-weight: bold; text-align: right;">Closing Balance:</td>
-                        <td colspan="2" style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${closingText}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top: 60px; text-align: right; font-size: 14px;">
-                <p>Branch Postmaster</p>
-            </div>
-        `;
-
-        document.body.appendChild(printDiv);
-
-        html2canvas(printDiv, { scale: 2 }).then(canvas => {
-            document.body.removeChild(printDiv);
-            btn.innerText = originalText;
-            btn.disabled = false;
-
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name (e.g., Deulgaon Mahi S.O):", "");
+            if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
             
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`BODA_${treasuryDate.value}.pdf`);
-        }).catch(err => {
-            document.body.removeChild(printDiv);
-            btn.innerText = originalText;
-            btn.disabled = false;
-            console.error("PDF Generation Error:", err);
-            alert("Failed to generate PDF. Check console for details.");
+            let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID (e.g., SUNIL (50041216)):", "");
+            if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
+
+            try {
+                // Word converter for Closing Balance
+                const getWords = (num) => {
+                    if (!num || num === 0) return "Zero";
+                    const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                    const convert = (n) => {
+                        if (n < 20) return a[n];
+                        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
+                        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : "");
+                        return "";
+                    };
+                    let str = ""; let n = Math.floor(num);
+                    if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; }
+                    if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; }
+                    if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
+                    if (n > 0) { str += convert(n); }
+                    return str.trim();
+                };
+
+                const printDiv = document.createElement('div');
+                printDiv.style.width = '800px'; 
+                printDiv.style.padding = '40px'; 
+                printDiv.style.background = 'white'; 
+                printDiv.style.position = 'fixed'; 
+                printDiv.style.top = '-10000px'; 
+                printDiv.style.color = 'black'; 
+                printDiv.style.fontFamily = 'Arial, sans-serif';
+                printDiv.style.fontSize = '12px';
+
+                // Data Extraction
+                let totalReceipts = 0;
+                let totalPayments = 0;
+                let tableRows = '';
+                let sno = 1;
+
+                document.querySelectorAll('#receiptsList .trans-row').forEach(row => {
+                    let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
+                    let val = parseFloat(row.querySelector('.val-receipt').value) || 0;
+                    if (val > 0) {
+                        totalReceipts += val;
+                        tableRows += `<tr>
+                            <td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td>
+                            <td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td>
+                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td>
+                            <td style="border: 1px solid black; padding: 6px;"></td>
+                        </tr>`;
+                    }
+                });
+
+                document.querySelectorAll('#paymentsList .trans-row').forEach(row => {
+                    let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value;
+                    let val = parseFloat(row.querySelector('.val-payment').value) || 0;
+                    if (val > 0) {
+                        totalPayments += val;
+                        tableRows += `<tr>
+                            <td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td>
+                            <td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td>
+                            <td style="border: 1px solid black; padding: 6px;"></td>
+                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td>
+                        </tr>`;
+                    }
+                });
+
+                const openingBal = parseFloat(document.getElementById('valOpeningBal').value) || 0;
+                const closingBalRaw = openingBal + totalReceipts - totalPayments;
+                const reportDate = document.getElementById('treasuryDate').value.split('-').reverse().join('-');
+                
+                const now = new Date();
+                const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
+
+                printDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
+                        <div style="width: 60%; text-align: center;">
+                            <h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2>
+                            <h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3>
+                        </div>
+                        <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">
+                            A.C.G-22 (A)<br>Preservation Period - 2 Yr
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-weight:bold;">To,</div>
+                            <div style="margin-top: 25px; display: flex; align-items: flex-end;">
+                                <div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div>
+                                <div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div>
+                            </div>
+                            <div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div>
+                        </div>
+                        <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">
+                            Date Stamp of<br>Branch Office
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+                        <div style="line-height: 1.6;">
+                            <div>Office Name: <strong>${boName}</strong></div>
+                            <div>User Name: <strong>${userName}</strong></div>
+                            <div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div>
+                        </div>
+                        <div style="line-height: 1.6; text-align: right;">
+                            <div>Generation Date: ${genDate}</div>
+                            <div>Report Date: ${reportDate}</div>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
+                        <tr style="border: 1px solid black;">
+                            <td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td>
+                        </tr>
+                        <tr style="border: 1px solid black; font-weight: bold;">
+                            <th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th>
+                            <th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th>
+                            <th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th>
+                            <th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th>
+                        </tr>
+                        ${tableRows}
+                        <tr style="border: 1px solid black;">
+                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td>
+                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td>
+                            <td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td style="border: 1px solid black; padding: 6px;">In Words:</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td>
+                        </tr>
+                    </table>
+
+                    <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">
+                        Branch Postmaster, ${boName}
+                    </div>
+                    
+                    <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
+                `;
+
+                document.body.appendChild(printDiv);
+
+                html2canvas(printDiv, { scale: 2 }).then(canvas => {
+                    document.body.removeChild(printDiv); 
+                    btn.innerText = originalText; 
+                    btn.disabled = false;
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf; 
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); 
+                    pdf.save(`BODA_${document.getElementById('treasuryDate').value}.pdf`);
+                });
+            } catch(e) {
+                alert("PDF Engine error: " + e.message); 
+                btn.innerText = originalText; 
+                btn.disabled = false;
+            }
         });
-    });
-});
+                                                         

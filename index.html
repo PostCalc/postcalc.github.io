@@ -311,59 +311,84 @@
                 </div>
             </div>
 
-            <div id="viewTreasury" class="app-view hidden-view">
+                        <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
                     <div class="treasury-header">
                         <h2>B.O Daily Account (A.C.G-22(A))</h2>
-                        <input type="date" id="treasuryDate" class="treasury-date-picker">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <input type="date" id="treasuryDate" class="treasury-date-picker">
+                            <div class="kebab-menu" id="btnTreasuryMenu">
+                                <span>&#8942;</span>
+                                <div class="kebab-dropdown hidden" id="treasuryDropdown">
+                                    <div class="kebab-item" id="optPastBoda">Download Past BODA</div>
+                                    <div class="kebab-item" id="optExcel">Monthly Excel Report</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
                     <div class="balance-row opening-balance">
                         <label>Opening Balance (₹)</label>
                         <input type="number" id="valOpeningBal" value="0" step="any">
                     </div>
-
                     <div class="ledger-grid">
                         <div class="ledger-col">
                             <h3 class="col-title receipts-title">Receipts (+)</h3>
                             <div id="receiptsList" class="transaction-list">
-                                <div class="trans-row"><label>Cash from AO</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>SB</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>RD</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>RD Default</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>SSA</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>IPPB</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>PLI / RPLI</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>VPP / COD</label><input type="number" class="val-receipt" placeholder="0"></div>
-                                <div class="trans-row"><label>EMO</label><input type="number" class="val-receipt" placeholder="0"></div>
-                            </div>
+                                </div>
                             <button id="btnAddReceipt" class="add-trans-btn">+ Add Receipt</button>
                         </div>
-
                         <div class="ledger-col">
                             <h3 class="col-title payments-title">Payments (-)</h3>
                             <div id="paymentsList" class="transaction-list">
-                                <div class="trans-row"><label>Cash to AO</label><input type="number" class="val-payment" placeholder="0"></div>
-                                <div class="trans-row"><label>SB Withdrawals</label><input type="number" class="val-payment" placeholder="0"></div>
-                                <div class="trans-row"><label>IPPB Withdrawals</label><input type="number" class="val-payment" placeholder="0"></div>
-                            </div>
+                                </div>
                             <button id="btnAddPayment" class="add-trans-btn">+ Add Payment</button>
                         </div>
                     </div>
-
                     <div class="balance-row closing-balance">
                         <label>Calculated Closing Balance</label>
                         <div id="valClosingBal" class="closing-amount">₹0.00</div>
                     </div>
-
-                    <div class="treasury-actions">
+                    <div class="treasury-actions" style="display: flex; gap: 10px; margin-top: 20px;">
                         <button id="btnSaveLedger" class="action-btn save-btn">Save Entry</button>
                         <button id="btnGenerateBODA" class="action-btn pdf-btn">Generate PDF</button>
-                        <button id="btnViewHistory" class="action-btn history-btn">History</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="page-footer">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
+
+        <div class="modal-overlay" id="infoModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Scheme Details</h3>
+                    <button class="modal-close" id="closeInfo">×</button>
+                </div>
+                <div class="modal-body"><div id="ruleContent" class="rule-content"></div></div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="toolsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="toolsModalTitle">Treasury Tools</h3>
+                    <button class="modal-close" id="closeTools">×</button>
+                </div>
+                <div class="modal-body">
+                    <div id="uiPastBoda" class="hidden">
+                        <label>Select Date to Download BODA:</label>
+                        <input type="date" id="inputPastBoda" class="native-select" style="margin-bottom: 20px;">
+                        <button id="btnExecutePastBoda" class="btn btn-calc" style="margin-top:0;">Fetch & Generate PDF</button>
+                    </div>
+                    <div id="uiExcel" class="hidden">
+                        <label>Select Month for Excel Report:</label>
+                        <input type="month" id="inputExcelMonth" class="native-select" style="margin-bottom: 20px;">
+                        <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;">Download Excel (CSV)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <div class="page-footer">Designed By CHETAN PATIL</div>
 

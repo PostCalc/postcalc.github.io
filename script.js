@@ -100,7 +100,7 @@ const RPLI_TABLE = {
     23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
     24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
     25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
-    26: {35:9.40, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20}, // Adjusted 9.45 to 9.40 per official app
+    26: {35:9.40, 40:5.85, 45:4.20, 50:3.25, 55:2.60, 58:2.35, 60:2.20}, 
     27: {35:10.70, 40:6.35, 45:4.45, 50:3.40, 55:2.70, 58:2.45, 60:2.30},
     28: {35:12.30, 40:6.95, 45:4.75, 50:3.60, 55:2.85, 58:2.55, 60:2.40},
     29: {35:14.40, 40:7.65, 45:5.10, 50:3.80, 55:3.00, 58:2.65, 60:2.50},
@@ -111,7 +111,7 @@ const RPLI_TABLE = {
     34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
     35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
 };
-/* =========================================
+       /* =========================================
    PART 2: UI SETUP & EVENT LISTENERS
    ========================================= */
 
@@ -311,11 +311,10 @@ function setMISMode(type) {
     event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
                    }
-/* =========================================
+                                   /* =========================================
    PART 3: CALCULATION & GRID ENGINE
    ========================================= */
 
-// 🚀 CRACKED OFFICIAL ALGORITHM: Matches Dak Sewa Exact Internal Routing
 function generateInsuranceGrid(sa, entryAge, type, d, mode) {
     const permittedMaturityAges = [35, 40, 45, 50, 55, 58, 60];
     let rows = [];
@@ -359,13 +358,10 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
             let aggregatedGross = monthlyGross * n;
             let finalGrossPrem = Math.round(aggregatedGross - totalDiscount);
             
-            // Replicate the Fractional Rebate Floor Logic
             let totalRebateRaw = (sa / 20000) * n;
             let displayRebate = Math.floor(totalRebateRaw); 
             
             let intermediatePremium = finalGrossPrem - totalRebateRaw;
-            
-            // Floor down to drop the weird 50 paise anomalies seen in screenshots
             let basePremiumRounded = Math.floor(intermediatePremium);
             
             let taxAmt = Math.round(basePremiumRounded * gstRate);
@@ -682,6 +678,35 @@ function renderSimple(data) {
     document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
 }
 
+/* =========================================
+   PART 4: UTILITY & EXPORT FUNCTIONS
+   ========================================= */
+
+function getVal(id) {
+    const el = document.getElementById(id);
+    return el ? (parseFloat(el.value) || 0) : 0;
+}
+
+function showWarn(msg) {
+    const wb = document.getElementById('warningBox');
+    if (wb) {
+        wb.innerText = msg;
+        wb.style.display = 'block';
+    }
+}
+
+function hideWarn() {
+    const wb = document.getElementById('warningBox');
+    if (wb) {
+        wb.style.display = 'none';
+    }
+}
+
+function fmt(num) {
+    if (isNaN(num)) return "-";
+    return "₹" + Math.round(num).toLocaleString('en-IN');
+}
+
 function captureAndShare() {
     const btn = document.getElementById('btnShare');
     const originalText = btn.innerText;
@@ -719,4 +744,41 @@ function captureAndShare() {
     
     clone.querySelectorAll('th, td').forEach(cell => {
         cell.style.whiteSpace = 'nowrap';
-   
+    });
+
+    document.body.appendChild(clone);
+
+    // Export generation using the html2canvas script included in index.html
+    html2canvas(clone, { scale: 2, useCORS: true }).then(canvas => {
+        document.body.removeChild(clone);
+        btn.innerText = originalText;
+        btn.disabled = false;
+
+        canvas.toBlob(blob => {
+            if (!blob) return;
+            const file = new File([blob], "PostCalc_Statement.png", { type: "image/png" });
+            
+            // Invoke the Web Share API natively if supported (ideal for mobile)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    title: document.getElementById('printSchemeName').innerText,
+                    text: 'PostCalc Savings Scheme Estimate',
+                    files: [file]
+                }).catch(console.error);
+            } else {
+                // Fallback for desktop browsers
+                const link = document.createElement('a');
+                link.download = 'PostCalc_Statement.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+        }, 'image/png');
+    }).catch(err => {
+        document.body.removeChild(clone);
+        btn.innerText = originalText;
+        btn.disabled = false;
+        console.error("Error rendering image:", err);
+    });
+       }
+           
+    

@@ -76,14 +76,12 @@ select#schemeSelector { display: none !important; }
 .btn-info-inline:active { background: var(--bg-app); }
 
 .warning-box { display: none; margin-top: 20px; padding: 14px 16px; background: #FEF2F2; border-left: 4px solid var(--ip-ruby); color: var(--ip-crimson); font-size: 0.9rem; font-weight: 600; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-
 .statement-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border-light); }
 .st-left h2 { margin: 0 0 4px; font-size: 1.4rem; color: var(--text-main); font-weight: 800; }
 .st-sub { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .st-right { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
 
 .res-title { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px; }
-
 .table-wrapper { border: 1px solid var(--border-table); border-radius: var(--radius-sm); overflow-x: auto; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
 table { width: 100%; border-collapse: collapse; background: var(--surface); font-variant-numeric: tabular-nums; }
 th { background: #F8FAFC; color: var(--text-muted); padding: 12px 10px; font-weight: 800; text-align: right; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-table); border-right: 1px solid var(--border-light); }
@@ -101,6 +99,7 @@ tr:nth-child(even) td:first-child { background-color: #F8FAFC; }
 #disclaimer { font-size: 0.7rem; color: #94A3B8; margin-top: 24px; line-height: 1.5; text-align: center; font-weight: 500;}
 .footer-brand { margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 16px; text-align: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
 .page-footer { text-align: center; padding: 20px; color: #CBD5E1; font-size: 0.75rem; margin-top: auto; font-weight: 600;}
+
 .info-section-title { font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
 .info-section-title::before { content: ''; width: 4px; height: 12px; background: var(--ip-gold); border-radius: 2px;}
 .info-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.85rem; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-light); }
@@ -121,42 +120,35 @@ tr:nth-child(even) td:first-child { background-color: #F8FAFC; }
 .treasury-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
 .treasury-header h2 { margin: 0; font-size: 1.1rem; color: #333; }
 .treasury-date-picker { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; font-family: 'Plus Jakarta Sans', sans-serif; }
-
 .balance-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
 .opening-balance { background: #e3f2fd; border: 1px solid #bbdefb; }
 .opening-balance label { margin: 0; color: #1565c0; font-size: 0.9rem;}
 .opening-balance input { width: 140px; padding: 8px; font-weight: bold; text-align: right; border: 1px solid #90caf9; border-radius: 4px; background: white;}
-
 .ledger-grid { display: flex; flex-direction: column; gap: 20px; }
 .col-title { margin: 0 0 10px 0; font-size: 1rem; padding-bottom: 5px; border-bottom: 2px solid #eee;}
 .receipts-title { color: #2e7d32; border-bottom-color: #2e7d32; }
 .payments-title { color: #d32f2f; border-bottom-color: #d32f2f; }
-
 .transaction-list { display: flex; flex-direction: column; gap: 10px; }
 .trans-row { display: flex; justify-content: space-between; align-items: center; }
 .trans-row label { font-size: 0.85rem; color: #555; flex: 1; margin: 0;}
 .trans-row input { width: 120px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: right; font-weight: bold;}
-
 .add-trans-btn { width: 100%; padding: 12px; background: #f8f9fa; border: 1px dashed #ccc; border-radius: 6px; color: #666; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
 .add-trans-btn:hover { background: #e9ecef; color: #333; border-style: solid; }
-
 .closing-balance { background: #e8f5e9; border: 1px solid #c8e6c9; margin-top: 25px; font-size: 1.1rem; }
 .closing-balance label { margin: 0; color: #2e7d32;}
 .closing-amount { color: #2e7d32; font-size: 1.4rem; }
-
 .treasury-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;}
 .action-btn { flex: 1; min-width: 100px; padding: 14px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; font-family: 'Plus Jakarta Sans', sans-serif;}
 .action-btn:active { transform: scale(0.98); }
 .save-btn { background: #1976d2; }
 .pdf-btn { background: #d32f2f; }
 
-/* --- KEBAB MENU STYLES --- */
+/* --- KEBAB MENU & LOCKS --- */
 .kebab-menu { position: relative; cursor: pointer; padding: 4px 8px; font-size: 1.5rem; font-weight: bold; color: var(--text-main); user-select: none; }
 .kebab-dropdown { position: absolute; top: 100%; right: 0; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 200px; z-index: 100; overflow: hidden; }
 .kebab-item { padding: 14px 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-light); transition: background 0.2s; }
 .kebab-item:last-child { border-bottom: none; }
 .kebab-item:active { background: #f1f5f9; }
-
-/* --- LOCKED STATE STYLES --- */
 input:disabled { background: #f1f5f9 !important; color: #94a3b8 !important; border-color: #e2e8f0 !important; cursor: not-allowed; }
 .save-btn:disabled { background: #94a3b8 !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+       

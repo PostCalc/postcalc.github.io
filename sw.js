@@ -1,4 +1,4 @@
-const CACHE_NAME = 'postcalc-v3.0';
+const CACHE_NAME = 'postcalc-v4.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

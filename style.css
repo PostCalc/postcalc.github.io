@@ -158,3 +158,50 @@ tr:nth-child(even) td:first-child { background-color: #F8FAFC; }
 .save-btn { background: #1976d2; }
 .pdf-btn { background: #d32f2f; }
 .history-btn { background: #616161; }
+/* --- KEBAB MENU STYLES --- */
+.kebab-menu {
+    position: relative;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-main);
+    user-select: none;
+}
+.kebab-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 200px;
+    z-index: 100;
+    overflow: hidden;
+}
+.kebab-item {
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s;
+}
+.kebab-item:last-child { border-bottom: none; }
+.kebab-item:active { background: #f1f5f9; }
+
+/* --- LOCKED STATE STYLES --- */
+input:disabled {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed;
+}
+.save-btn:disabled {
+    background: #94a3b8 !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+

@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 3. Official A.C.G-22(A) PDF Generator
-            document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+              document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
             const btn = document.getElementById('btnGenerateBODA');
             const originalText = btn.innerText; 
             btn.innerText = "Generating..."; 
@@ -934,4 +934,4 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = false;
             }
         });
-                                                         
+}); // <-- These two brackets are the missing ones that restore the entire app

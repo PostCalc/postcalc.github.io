@@ -91,12 +91,11 @@ const PLI_TABLE = {
     54: {60:152},
     55: {60:178}
 };
-
-const RPLI_TABLE = {
+         const RPLI_TABLE = {
     19: {35:5.10, 40:3.75, 45:2.95, 50:2.40, 55:2.00, 58:1.85, 60:1.75},
     20: {35:5.45, 40:3.95, 45:3.10, 50:2.50, 55:2.05, 58:1.90, 60:1.80},
     21: {35:5.85, 40:4.20, 45:3.25, 50:2.60, 55:2.10, 58:1.95, 60:1.85},
-    22: {35:6.35, 40:4.45, 45:13.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
+    22: {35:6.35, 40:4.45, 45:3.40, 50:2.70, 55:2.20, 58:2.00, 60:1.90}, 
     23: {35:6.95, 40:4.75, 45:3.55, 50:2.80, 55:2.30, 58:2.05, 60:1.95},
     24: {35:7.65, 40:5.10, 45:3.75, 50:2.95, 55:2.40, 58:2.15, 60:2.00},
     25: {35:8.45, 40:5.45, 45:3.95, 50:3.10, 55:2.50, 58:2.25, 60:2.10},
@@ -109,9 +108,30 @@ const RPLI_TABLE = {
     32: {40:10.70, 45:6.40, 50:4.50, 55:3.45, 58:3.05, 60:2.80},
     33: {40:12.30, 45:6.95, 50:4.80, 55:3.65, 58:3.20, 60:2.95},
     34: {40:14.40, 45:7.65, 50:5.15, 55:3.85, 58:3.35, 60:3.05},
-    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20}
+    35: {40:17.40, 45:8.45, 50:5.50, 55:4.05, 58:3.50, 60:3.20},
+    36: {45:9.40, 50:6.00, 55:4.40, 58:3.80, 60:3.40},
+    37: {45:10.60, 50:6.40, 55:4.60, 58:4.00, 60:3.60},
+    38: {45:12.20, 50:7.00, 55:5.00, 58:4.20, 60:3.80},
+    39: {45:14.40, 50:7.80, 55:5.40, 58:4.40, 60:4.00},
+    40: {45:17.40, 50:8.60, 55:5.60, 58:4.60, 60:4.20},
+    41: {50:9.60, 55:6.00, 58:5.00, 60:4.40},
+    42: {50:10.80, 55:6.60, 58:5.40, 60:4.80},
+    43: {50:12.40, 55:7.20, 58:5.80, 60:5.00},
+    44: {50:14.40, 55:7.80, 58:6.20, 60:5.40},
+    45: {50:17.40, 55:8.60, 58:6.60, 60:5.80},
+    46: {55:9.60, 58:7.20, 60:6.20},
+    47: {55:11.00, 58:8.00, 60:6.80},
+    48: {55:12.60, 58:8.80, 60:7.40},
+    49: {55:14.60, 58:9.80, 60:8.00},
+    50: {55:17.60, 58:11.00, 60:8.80},
+    51: {58:12.60, 60:9.80},
+    52: {58:15.00, 60:11.80},
+    53: {58:17.80, 60:13.20},
+    54: {60:15.20},
+    55: {60:17.80}
 };
-       /* =========================================
+
+/* =========================================
    PART 2: UI SETUP & EVENT LISTENERS
    ========================================= */
 
@@ -239,8 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-function openModal() { 
+   function openModal() { 
     const s = document.getElementById('schemeSelector').value; 
     updateInfoContent(s); 
     document.getElementById('infoModal').classList.add('show'); 
@@ -282,7 +301,7 @@ function unhide(id) { document.getElementById(id).classList.remove('hidden'); }
 
 function setSSAMode(mode) {
     document.querySelectorAll('#input-ssa .toggle-btn').forEach(btn => btn.classList.remove('active')); 
-    event.target.classList.add('active');
+    if(window.event && window.event.target) window.event.target.classList.add('active');
     document.getElementById('input-ssa').dataset.mode = mode;
     if (mode === 'annual') { 
         unhide('ssa-annual-inputs'); 
@@ -295,7 +314,7 @@ function setSSAMode(mode) {
 
 function setPPFMode(mode) {
     document.querySelectorAll('#input-ppf .toggle-btn').forEach(btn => btn.classList.remove('active')); 
-    event.target.classList.add('active');
+    if(window.event && window.event.target) window.event.target.classList.add('active');
     document.getElementById('input-ppf').dataset.mode = mode;
     if (mode === 'annual') { 
         unhide('ppf-annual-inputs'); 
@@ -308,10 +327,11 @@ function setPPFMode(mode) {
 
 function setMISMode(type) {
     document.querySelectorAll('#input-mis .toggle-btn').forEach(btn => btn.classList.remove('active')); 
-    event.target.classList.add('active');
+    if(window.event && window.event.target) window.event.target.classList.add('active');
     document.getElementById('input-mis').dataset.type = type;
-                   }
-                                   /* =========================================
+}
+
+/* =========================================
    PART 3: CALCULATION & GRID ENGINE
    ========================================= */
 
@@ -384,9 +404,8 @@ function generateInsuranceGrid(sa, entryAge, type, d, mode) {
         }
     });
     return rows;
-}
-
-const Engines = {
+       }
+       const Engines = {
     calcSB: (p, r, d) => {
         let yrs = parseInt(document.getElementById('sbTenure').value) || 1;
         let rows = []; let bal = p; let startMonth = (d.getDate() > 10) ? 1 : 0; 
@@ -633,7 +652,9 @@ function handleCalculate() {
     document.getElementById('lblTotalInt').innerText = "Total Interest";
     document.getElementById('lblMaturity').innerText = "Maturity Amount";
     document.getElementById('lblMatDate').innerText = "Maturity Date";
-    document.getElementById('lblPayout').innerText = "Regular Payout";
+    
+    const lblPayout = document.getElementById('lblPayout');
+    if (lblPayout) lblPayout.innerText = "Regular Payout";
     
     if(res) renderSimple(res);
 }
@@ -779,6 +800,5 @@ function captureAndShare() {
         btn.disabled = false;
         console.error("Error rendering image:", err);
     });
-       }
-           
-    
+               }
+                                                                                                                                                                      

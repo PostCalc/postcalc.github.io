@@ -29,6 +29,7 @@
         </div>
 
         <div class="main-container">
+            <!-- VIEW 1: HOME SCREEN -->
             <div id="viewHome" class="app-view active-view">
                 <div class="home-grid">
                     <div class="home-card card-savings" id="navSavings">
@@ -46,6 +47,7 @@
                 </div>
             </div>
 
+            <!-- VIEW 2: CALCULATOR -->
             <div id="viewCalculator" class="app-view hidden-view">
                 <div class="card input-section">
                     <div class="toggle-row" id="mainCategoryToggle" style="margin-bottom: 24px;">
@@ -89,12 +91,13 @@
                     <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
                         <span>View Scheme Details</span>
                     </button>
-                </div>
-                <div class="card hidden" id="inputCard">
+    </div>
+                    <div class="card hidden" id="inputCard">
                     <h3>Enter Details</h3>
                     <div style="margin-bottom: 20px;">
                         <label>Date of Opening / First Deposit</label>
                         <input type="date" id="dateOpen">
+                        <small style="color:#777; font-size: 0.75rem;">(Used to calculate interest & GST rules)</small>
                     </div>
                     <form id="calcForm">
                         <div id="input-sb" class="input-group hidden">
@@ -212,8 +215,8 @@
                     </form>
                     <div id="warningBox" class="warning-box"></div>
                     <button class="btn btn-calc" id="btnCalculate">Calculate</button>
-    </div>
-                                                <div class="card hidden" id="resultsCard">
+                                    </div>
+                    <div class="card hidden" id="resultsCard">
                     <div class="statement-header">
                         <div class="st-left">
                             <h2 id="printSchemeName">Scheme Name</h2>
@@ -266,6 +269,7 @@
                 </div>
             </div>
 
+            <!-- VIEW 3: TREASURY MANAGER -->
             <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
                     <div class="treasury-header">
@@ -276,7 +280,7 @@
                                 <span>&#8942;</span>
                                 <div class="kebab-dropdown hidden" id="treasuryDropdown">
                                     <div class="kebab-item" id="optPastBoda">Download Past BODA</div>
-                                    <div class="kebab-item" id="optExcel">Monthly Excel Report</div>
+                                    <div class="kebab-item" id="optExcel">Monthly PDF Report</div>
                                 </div>
                             </div>
                         </div>
@@ -289,13 +293,15 @@
                         <div class="ledger-col">
                             <h3 class="col-title receipts-title">Receipts (+)</h3>
                             <div id="receiptsList" class="transaction-list">
-                                </div>
+                                <!-- Populated dynamically by JS -->
+                            </div>
                             <button id="btnAddReceipt" class="add-trans-btn">+ Add Receipt</button>
                         </div>
                         <div class="ledger-col">
                             <h3 class="col-title payments-title">Payments (-)</h3>
                             <div id="paymentsList" class="transaction-list">
-                                </div>
+                                <!-- Populated dynamically by JS -->
+                            </div>
                             <button id="btnAddPayment" class="add-trans-btn">+ Add Payment</button>
                         </div>
                     </div>
@@ -313,6 +319,7 @@
 
         <div class="page-footer">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
 
+        <!-- INFO MODAL -->
         <div class="modal-overlay" id="infoModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -323,6 +330,7 @@
             </div>
         </div>
 
+        <!-- TOOLS MODAL -->
         <div class="modal-overlay" id="toolsModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -336,9 +344,9 @@
                         <button id="btnExecutePastBoda" class="btn btn-calc" style="margin-top:0;">Fetch & Generate PDF</button>
                     </div>
                     <div id="uiExcel" class="hidden">
-                        <label>Select Month for Excel Report:</label>
+                        <label>Select Month for PDF Report:</label>
                         <input type="month" id="inputExcelMonth" class="native-select" style="margin-bottom: 20px;">
-                        <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;">Download Excel (CSV)</button>
+                        <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;">Download Monthly PDF</button>
                     </div>
                 </div>
             </div>
@@ -346,4 +354,5 @@
     </div>
     <script src="script.js"></script>
 </body>
-</html>
+    </html>
+    

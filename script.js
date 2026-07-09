@@ -264,4 +264,247 @@ function initCalculator() {
         hideWarn(); let res = Engines.calcRD_EXT(p, extRate, extYrs, extType, dX); document.getElementById('printSchemeName').innerText = "RD (Extension)"; if(res) renderSimple(res);
     });
                 }
+/* =========================================
+   PART 6: TREASURY MANAGER & PDF GENERATORS
+   ========================================= */
+function initTreasury() {
+    // Explicitly matched exact headers requested
+    const DEFAULT_RECEIPTS = ["Cash from AO", "SB", "RD", "RD Default", "SSA", "IPPB", "PLI / RPLI", "VPP / COD", "TD", "EMO"];
+    const DEFAULT_PAYMENTS = ["Cash to AO", "SB Withdrawals", "IPPB Withdrawals", "EMO"];
+    
+    const treasuryDate = document.getElementById('treasuryDate');
+    const valOpeningBal = document.getElementById('valOpeningBal');
+    const valClosingBal = document.getElementById('valClosingBal');
+    const receiptsList = document.getElementById('receiptsList');
+    const paymentsList = document.getElementById('paymentsList');
+
+    // Rename the button via JS to avoid HTML updates
+    const btnExecuteExcel = document.getElementById('btnExecuteExcel');
+    if (btnExecuteExcel) {
+        btnExecuteExcel.innerText = "Download Monthly PDF";
+        const optExcel = document.getElementById('optExcel');
+        if(optExcel) optExcel.innerText = "Monthly PDF Summary";
+    }
+
+    if (treasuryDate) { treasuryDate.addEventListener('change', () => loadLedgerData(treasuryDate.value)); }
+
+    function renderRows(container, items, isPayment, isLocked) {
+        if(!container) return; container.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div'); div.className = 'trans-row';
+            const isCustom = !DEFAULT_RECEIPTS.includes(item.label) && !DEFAULT_PAYMENTS.includes(item.label);
+            const labelHtml = isCustom ? `<input type="text" value="${item.label}" class="custom-label" placeholder="Description" style="flex:1; margin-right:10px; font-weight:normal;" ${isLocked ? 'disabled' : ''}>` : `<label>${item.label}</label>`;
+            div.innerHTML = `${labelHtml}<input type="number" class="${isPayment ? 'val-payment' : 'val-receipt'}" placeholder="0" value="${item.val > 0 ? item.val : ''}" style="width:120px;" ${isLocked ? 'disabled' : ''}>`;
+            container.appendChild(div);
+        }); setupTreasuryCalc();
+    }
+
+    function setLockState(isLocked) {
+        if(valOpeningBal) valOpeningBal.disabled = isLocked;
+        const addR = document.getElementById('btnAddReceipt'); if(addR) addR.style.display = isLocked ? 'none' : 'block';
+        const addP = document.getElementById('btnAddPayment'); if(addP) addP.style.display = isLocked ? 'none' : 'block';
+        const btnSave = document.getElementById('btnSaveLedger');
+        if (btnSave) { btnSave.disabled = isLocked; btnSave.innerText = isLocked ? "Saved (Locked)" : "Save Entry"; }
+    }
+
+    function loadLedgerData(dateStr) {
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        let defaultR = DEFAULT_RECEIPTS.map(lbl => ({label: lbl, val: 0})); 
+        let defaultP = DEFAULT_PAYMENTS.map(lbl => ({label: lbl, val: 0}));
+
+        if (db[dateStr]) {
+            const entry = db[dateStr]; if(valOpeningBal) valOpeningBal.value = entry.opening;
+            renderRows(receiptsList, entry.receipts || defaultR, false, true); 
+            renderRows(paymentsList, entry.payments || defaultP, true, true); 
+            setLockState(true);
+        } else {
+            let dates = Object.keys(db).sort(); let prevDate = dates.filter(d => d < dateStr).pop();
+            if(valOpeningBal) valOpeningBal.value = prevDate ? db[prevDate].closing : 0;
+            renderRows(receiptsList, defaultR, false, false); renderRows(paymentsList, defaultP, true, false); setLockState(false);
+        }
+        setupTreasuryCalc();
+    }
+
+    function calculateTreasuryBalance() {
+        let op = parseFloat(valOpeningBal?.value) || 0;
+        let receipts = Array.from(document.querySelectorAll('.val-receipt')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let payments = Array.from(document.querySelectorAll('.val-payment')).reduce((sum, el) => sum + (parseFloat(el.value) || 0), 0);
+        let closing = op + receipts - payments; 
+        if(valClosingBal) valClosingBal.innerText = "₹" + closing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    }
+
+    function setupTreasuryCalc() {
+        document.querySelectorAll('.val-receipt, .val-payment, #valOpeningBal').forEach(input => {
+            input.removeEventListener('input', calculateTreasuryBalance); input.addEventListener('input', calculateTreasuryBalance);
+        }); calculateTreasuryBalance();
+    }
+
+    document.getElementById('btnSaveLedger')?.addEventListener('click', () => {
+        const dateStr = treasuryDate?.value; if (!dateStr) return alert("Please select a date first.");
+        let receiptsData = []; document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Receipt"; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; receiptsData.push({label, val}); });
+        let paymentsData = []; document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || "Other Payment"; let val = parseFloat(row.querySelector('.val-payment').value) || 0; paymentsData.push({label, val}); });
+        const closingNum = parseFloat(valClosingBal?.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
+        db[dateStr] = { opening: parseFloat(valOpeningBal?.value) || 0, closing: closingNum, receipts: receiptsData, payments: paymentsData, timestamp: new Date().getTime() };
+        localStorage.setItem('postcalc_treasury_db', JSON.stringify(db));
+        alert("Daily Account Saved & Locked for " + dateStr); loadLedgerData(dateStr); 
+    });
+
+    document.getElementById('btnAddReceipt')?.addEventListener('click', () => { renderRows(receiptsList, [...getFormState(receiptsList), {label: "", val: 0}], false, false); });
+    document.getElementById('btnAddPayment')?.addEventListener('click', () => { renderRows(paymentsList, [...getFormState(paymentsList), {label: "", val: 0}], true, false); });
+    function getFormState(container) { let data = []; if(!container) return data; container.querySelectorAll('.trans-row').forEach(row => { let labelEl = row.querySelector('label') || row.querySelector('.custom-label'); let label = labelEl.innerText || labelEl.value || ""; let val = parseFloat(row.querySelector('input[type="number"]').value) || 0; data.push({label, val}); }); return data; }
+
+    const menuBtn = document.getElementById('btnTreasuryMenu'); const menuDropdown = document.getElementById('treasuryDropdown');
+    const toolsModal = document.getElementById('toolsModal'); const uiPastBoda = document.getElementById('uiPastBoda'); const uiExcel = document.getElementById('uiExcel'); const toolsTitle = document.getElementById('toolsModalTitle');
+    
+    menuBtn?.addEventListener('click', (e) => { e.stopPropagation(); menuDropdown?.classList.toggle('hidden'); });
+    document.addEventListener('click', () => { if(menuDropdown && !menuDropdown.classList.contains('hidden')) menuDropdown.classList.add('hidden'); });
+    
+    document.getElementById('optPastBoda')?.addEventListener('click', () => { uiPastBoda?.classList.remove('hidden'); uiExcel?.classList.add('hidden'); if(toolsTitle) toolsTitle.innerText = "Download Past BODA"; toolsModal?.classList.add('show'); });
+    document.getElementById('optExcel')?.addEventListener('click', () => { uiPastBoda?.classList.add('hidden'); uiExcel?.classList.remove('hidden'); if(toolsTitle) toolsTitle.innerText = "Monthly PDF Report"; toolsModal?.classList.add('show'); });
+    document.getElementById('closeTools')?.addEventListener('click', () => { toolsModal?.classList.remove('show'); });
+
+    document.getElementById('btnExecutePastBoda')?.addEventListener('click', () => {
+        const pDate = document.getElementById('inputPastBoda')?.value; if(!pDate) return alert("Select a date.");
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {}; if(!db[pDate]) return alert("No saved data found for " + pDate);
+        toolsModal?.classList.remove('show'); if(treasuryDate) treasuryDate.value = pDate; loadLedgerData(pDate); setTimeout(() => { document.getElementById('btnGenerateBODA')?.click(); }, 300);
+    });
+
+    // NEW MONTHLY PDF GENERATOR
+    document.getElementById('btnExecuteExcel')?.addEventListener('click', () => {
+        const monthStr = document.getElementById('inputExcelMonth')?.value; if(!monthStr) return alert("Select a month.");
+        const db = JSON.parse(localStorage.getItem('postcalc_treasury_db')) || {};
         
+        let boName = localStorage.getItem('pc_bo_name') || "Your B.O";
+        let aoName = localStorage.getItem('pc_ao_name') || "Your S.O";
+        
+        let htmlRows = ''; let found = false;
+        let totals = {ob:0, cfromao:0, sbR:0, rd:0, rdDef:0, ssa:0, ippbR:0, pli:0, vpp:0, td:0, emoR:0, ctoao:0, sbP:0, ippbP:0, emoP:0, cb:0};
+
+        const [yyyy, mm] = monthStr.split('-');
+        const daysInMonth = new Date(yyyy, mm, 0).getDate();
+        
+        for(let d=1; d<=daysInMonth; d++) {
+            let dateKey = `${yyyy}-${mm}-${("0"+d).slice(-2)}`;
+            if(db[dateKey]) {
+                found = true; const entry = db[dateKey];
+                const getR = (lbl) => (entry.receipts || []).find(i => i.label === lbl)?.val || 0;
+                const getP = (lbl) => (entry.payments || []).find(i => i.label === lbl)?.val || 0;
+
+                let ob = entry.opening || 0; let cfromao = getR("Cash from AO"); let sbR = getR("SB"); let rd = getR("RD"); let rdDef = getR("RD Default"); let ssa = getR("SSA"); let ippbR = getR("IPPB"); let pli = getR("PLI / RPLI"); let vpp = getR("VPP / COD"); let td = getR("TD"); let emoR = getR("EMO");
+                let ctoao = getP("Cash to AO"); let sbP = getP("SB Withdrawals") || getP("SB"); let ippbP = getP("IPPB Withdrawals") || getP("IPPB"); let emoP = getP("EMO"); let cb = entry.closing || 0;
+
+                totals.ob += ob; totals.cfromao += cfromao; totals.sbR += sbR; totals.rd += rd; totals.rdDef += rdDef; totals.ssa += ssa; totals.ippbR += ippbR; totals.pli += pli; totals.vpp += vpp; totals.td += td; totals.emoR += emoR; totals.ctoao += ctoao; totals.sbP += sbP; totals.ippbP += ippbP; totals.emoP += emoP; totals.cb += cb;
+
+                htmlRows += `<tr><td style="border:1px solid black; padding:3px;">${("0"+d).slice(-2)}-${mm}-${yyyy}</td><td style="border:1px solid black; padding:3px;">${ob.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${cfromao.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${sbR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${rd.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${rdDef.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${ssa.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${ippbR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${pli.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${vpp.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${td.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${emoR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${ctoao.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${sbP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${ippbP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${emoP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${cb.toFixed(1)}</td></tr>`;
+            }
+        }
+        if(!found) return alert("No data found for this month.");
+
+        htmlRows += `<tr style="font-weight:bold; background:#eee;"><td style="border:1px solid black; padding:3px;">TOTAL</td><td style="border:1px solid black; padding:3px;">-</td><td style="border:1px solid black; padding:3px;">${totals.cfromao.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.sbR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.rd.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.rdDef.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.ssa.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.ippbR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.pli.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.vpp.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.td.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.emoR.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.ctoao.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.sbP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.ippbP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">${totals.emoP.toFixed(1)}</td><td style="border:1px solid black; padding:3px;">-</td></tr>`;
+
+        const btn = document.getElementById('btnExecuteExcel'); const originalText = btn.innerText; btn.innerText = "Generating..."; btn.disabled = true;
+
+        const printDiv = document.createElement('div');
+        printDiv.style.width = '1200px'; printDiv.style.padding = '30px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '10px';
+
+        printDiv.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2>
+                <h3 style="margin: 5px 0; font-size: 14px;">Monthly Treasury Summary</h3>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 12px; font-weight: bold;">
+                <div>Branch Office: ${boName}</div><div>Account Office: ${aoName}</div><div>Month: ${monthStr}</div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: right;">
+                <thead>
+                    <tr style="background:#f8f9fa;">
+                        <th rowspan="2" style="border:1px solid black; padding:4px; text-align:center;">Date</th>
+                        <th rowspan="2" style="border:1px solid black; padding:4px; text-align:center;">OB</th>
+                        <th colspan="10" style="border:1px solid black; padding:4px; text-align:center;">Receipts</th>
+                        <th colspan="4" style="border:1px solid black; padding:4px; text-align:center;">Payments</th>
+                        <th rowspan="2" style="border:1px solid black; padding:4px; text-align:center;">CB</th>
+                    </tr>
+                    <tr style="background:#f8f9fa;">
+                        <th style="border:1px solid black; padding:4px; text-align:center;">Cash FM AO</th><th style="border:1px solid black; padding:4px; text-align:center;">SB</th><th style="border:1px solid black; padding:4px; text-align:center;">RD</th><th style="border:1px solid black; padding:4px; text-align:center;">RD Def</th><th style="border:1px solid black; padding:4px; text-align:center;">SSA</th><th style="border:1px solid black; padding:4px; text-align:center;">IPPB</th><th style="border:1px solid black; padding:4px; text-align:center;">PLI/RPLI</th><th style="border:1px solid black; padding:4px; text-align:center;">VPP/COD</th><th style="border:1px solid black; padding:4px; text-align:center;">TD</th><th style="border:1px solid black; padding:4px; text-align:center;">EMO</th>
+                        <th style="border:1px solid black; padding:4px; text-align:center;">Cash TO AO</th><th style="border:1px solid black; padding:4px; text-align:center;">SB</th><th style="border:1px solid black; padding:4px; text-align:center;">IPPB</th><th style="border:1px solid black; padding:4px; text-align:center;">EMO</th>
+                    </tr>
+                </thead>
+                <tbody>${htmlRows}</tbody>
+            </table>
+        `;
+
+        document.body.appendChild(printDiv);
+        html2canvas(printDiv, { scale: 2 }).then(canvas => {
+            document.body.removeChild(printDiv); btn.innerText = originalText; btn.disabled = false;
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf; const pdf = new jsPDF('l', 'mm', 'a4'); // LANDSCAPE
+            const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); pdf.save(`Monthly_Summary_${monthStr}.pdf`);
+            if (toolsModal) toolsModal.classList.remove('show');
+        }).catch(e => { alert("PDF Engine error: " + e.message); btn.innerText = originalText; btn.disabled = false; });
+    });
+
+    document.getElementById('btnGenerateBODA')?.addEventListener('click', () => {
+        const btn = document.getElementById('btnGenerateBODA'); const originalText = btn.innerText; btn.innerText = "Generating..."; btn.disabled = true;
+        let boName = localStorage.getItem('pc_bo_name') || prompt("Enter Branch Office Name:", "Digras BK B.O"); if(boName) localStorage.setItem('pc_bo_name', boName); else boName = "Your B.O";
+        let aoName = localStorage.getItem('pc_ao_name') || prompt("Enter Account Office Name:", "Deulgaon Mahi S.O"); if(aoName) localStorage.setItem('pc_ao_name', aoName); else aoName = "Your S.O";
+        let userName = localStorage.getItem('pc_user_name') || prompt("Enter BPM Name & ID:", "SUNIL (50041216)"); if(userName) localStorage.setItem('pc_user_name', userName); else userName = "BPM Name (ID)";
+        try {
+            const getWords = (num) => {
+                if (!num || num === 0) return "Zero";
+                const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                const convert = (n) => { if (n < 20) return a[n]; if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : ""); if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : ""); return ""; };
+                let str = ""; let n = Math.floor(num); if (n >= 10000000) { str += convert(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; } if (n >= 100000) { str += convert(Math.floor(n / 100000)) + " Lakh "; n %= 100000; } if (n >= 1000) { str += convert(Math.floor(n / 1000)) + " Thousand "; n %= 1000; } if (n > 0) { str += convert(n); } return str.trim();
+            };
+            const printDiv = document.createElement('div'); printDiv.style.width = '800px'; printDiv.style.padding = '40px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '12px';
+            let totalReceipts = 0; let totalPayments = 0; let tableRows = ''; let sno = 1;
+            document.querySelectorAll('#receiptsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-receipt').value) || 0; if (val > 0) { totalReceipts += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Receipts</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px;"></td></tr>`; } });
+            document.querySelectorAll('#paymentsList .trans-row').forEach(row => { let label = row.querySelector('label') ? row.querySelector('label').innerText : row.querySelector('input[type="text"]').value; let val = parseFloat(row.querySelector('.val-payment').value) || 0; if (val > 0) { totalPayments += val; tableRows += `<tr><td style="border: 1px solid black; padding: 6px; text-align: center;">${sno++}</td><td style="border: 1px solid black; padding: 6px; font-weight: bold;">${label} - Payments</td><td style="border: 1px solid black; padding: 6px;"></td><td style="border: 1px solid black; padding: 6px; text-align: right;">${val.toFixed(2)}</td></tr>`; } });
+            const openingBal = parseFloat(valOpeningBal?.value) || 0; const closingBalRaw = openingBal + totalReceipts - totalPayments; const reportDate = document.getElementById('treasuryDate')?.value.split('-').reverse().join('-') || ""; const now = new Date(); const genDate = `${("0"+now.getDate()).slice(-2)}-${("0"+(now.getMonth()+1)).slice(-2)}-${now.getFullYear()} ${("0"+now.getHours()).slice(-2)}:${("0"+now.getMinutes()).slice(-2)}`;
+            
+            printDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="width: 20%;"><img src="icon-192.png" style="width: 45px;"></div>
+                    <div style="width: 60%; text-align: center;"><h2 style="margin: 0; font-size: 16px;">DEPARTMENT OF POSTS, INDIA</h2><h3 style="margin: 5px 0; font-size: 14px;">Branch Office Daily Account</h3></div>
+                    <div style="width: 20%; text-align: right; font-size: 10px; font-weight: bold;">A.C.G-22 (A)<br>Preservation Period - 2 Yr</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center;">
+                    <div style="flex: 1;"><div style="font-weight:bold;">To,</div><div style="margin-top: 25px; display: flex; align-items: flex-end;"><div style="border-bottom: 1px solid black; width: 280px; text-align: center; padding-bottom: 2px; font-weight:bold; font-size: 13px;">${aoName}</div><div style="margin-left: 10px; font-weight: bold; font-size:13px;">H.O / S.O</div></div><div style="text-align: center; width: 280px; font-size: 11px;">(Name of Account Office)</div></div>
+                    <div style="width: 90px; height: 90px; border: 2px solid black; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold;">Date Stamp of<br>Branch Office</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px;">
+                    <div style="line-height: 1.6;"><div>Office Name: <strong>${boName}</strong></div><div>User Name: <strong>${userName}</strong></div><div>Opening Balance: <strong>${openingBal.toFixed(1)}</strong></div></div>
+                    <div style="line-height: 1.6; text-align: right;"><div>Generation Date: ${genDate}</div><div>Report Date: ${reportDate}</div></div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black; margin-bottom: 40px; font-size: 13px;">
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Min. Balance: 12000</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: right;">Max. Balance: 20000</td></tr>
+                    <tr style="border: 1px solid black; font-weight: bold;"><th style="border: 1px solid black; padding: 6px; width: 8%;">SNo</th><th style="border: 1px solid black; padding: 6px; width: 52%; text-align: center;">Details of Transactions</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Receipts</th><th style="border: 1px solid black; padding: 6px; width: 20%; text-align: right;">Payments</th></tr>
+                    ${tableRows}
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Total</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalReceipts.toFixed(2)}</td><td style="border: 1px solid black; padding: 6px; text-align: right;">${totalPayments.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px;">Balance due to Account Office:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">0</td></tr>
+                    <tr style="border: 1px solid black;"><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">Closing Balance:</td><td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">${closingBalRaw.toFixed(2)}</td></tr>
+                    <tr style="border: 1px solid black;"><td style="border: 1px solid black; padding: 6px;">In Words:</td><td colspan="3" style="border: 1px solid black; padding: 6px; text-align: center;">${getWords(closingBalRaw)} Rupees</td></tr>
+                </table>
+                <div style="text-align: right; margin-top: 40px; margin-bottom: 30px; font-size: 13px;">Branch Postmaster, ${boName}</div>
+                <div style="text-align: right; font-size: 11px; font-weight: bold;">Page 1 of 1</div>
+            `;
+            document.body.appendChild(printDiv);
+            html2canvas(printDiv, { scale: 2 }).then(canvas => {
+                document.body.removeChild(printDiv); btn.innerText = originalText; btn.disabled = false;
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); pdf.save(`BODA_${document.getElementById('treasuryDate').value}.pdf`);
+            });
+        } catch(e) { alert("PDF Engine error: " + e.message); btn.innerText = originalText; btn.disabled = false; }
+    });
+}
+
+// BOOTSTRAP PIPELINE
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
+    initCalculator();
+    initTreasury();
+});

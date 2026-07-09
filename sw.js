@@ -1,4 +1,4 @@
-const CACHE_NAME = 'postcalc-v7.0';
+const CACHE_NAME = 'postcalc-v3.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -8,43 +8,56 @@ const ASSETS_TO_CACHE = [
     './manifest.json'
 ];
 
-// Install Event: Cache the new files
+// 1. INSTALL EVENT: Download core assets to the device
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
+            console.log('[Service Worker] Caching all assets');
             return cache.addAll(ASSETS_TO_CACHE);
         })
     );
-    self.skipWaiting(); // Force the waiting service worker to become the active service worker
+    // Force the new service worker to activate immediately, skipping the waiting lifecycle
+    self.skipWaiting();
 });
 
-// Activate Event: Delete the old v1.0 caches
+// 2. ACTIVATE EVENT: Annihilate old cache versions
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cache) => {
                     if (cache !== CACHE_NAME) {
-                        console.log('Clearing old cache:', cache);
+                        console.log('[Service Worker] Clearing old cache:', cache);
                         return caches.delete(cache);
                     }
                 })
             );
         })
     );
+    // Instantly take control of all open browser tabs
     self.clients.claim();
 });
 
-// Fetch Event: Serve from cache, fallback to network
+// 3. FETCH EVENT: "Network First, Fallback to Cache" Strategy
 self.addEventListener('fetch', (event) => {
-    // Ignore external API requests (like CDNs for html2canvas/jspdf)
-    if (!event.request.url.startsWith(self.location.origin)) {
+    // Ignore non-GET requests and external CDNs (like html2canvas/jspdf)
+    if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
         return;
     }
 
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
+        fetch(event.request)
+            .then((networkResponse) => {
+                // If network fetch is successful, dynamically update the cache with the fresh file
+                return caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, networkResponse.clone());
+                    return networkResponse;
+                });
+            })
+            .catch(() => {
+                // If the user is offline or network fails, serve the app from the local cache
+                console.log('[Service Worker] Network fetch failed, serving from offline cache:', event.request.url);
+                return caches.match(event.request);
+            })
     );
 });

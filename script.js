@@ -506,9 +506,117 @@ function initTreasury() {
     });
 }
 
+/* =========================================
+   PART 7: TD COMMISSION BILL GENERATOR
+   ========================================= */
+function initTDBill() {
+    const list = document.getElementById('tdAccountList'); const btnAdd = document.getElementById('btnAddTdAccount'); const valTotal = document.getElementById('valTotalIncentive'); const btnGen = document.getElementById('btnGenerateTDBill');
+    const boInput = document.getElementById('tdBoName'); const soInput = document.getElementById('tdSoName'); const hoInput = document.getElementById('tdHoName');
+
+    if(boInput) { boInput.value = localStorage.getItem('pc_bo_name') || "Your B.O"; boInput.addEventListener('input', () => localStorage.setItem('pc_bo_name', boInput.value)); }
+    if(soInput) { soInput.value = localStorage.getItem('pc_ao_name') || "Your S.O"; soInput.addEventListener('input', () => localStorage.setItem('pc_ao_name', soInput.value)); }
+    if(hoInput) { hoInput.value = localStorage.getItem('pc_ho_name') || "Your H.O"; hoInput.addEventListener('input', () => localStorage.setItem('pc_ho_name', hoInput.value)); }
+
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.td-account-row').forEach(row => {
+            let amt = parseFloat(row.querySelector('.td-amt').value) || 0;
+            let term = row.querySelector('.td-term').value;
+            let rate = (term === '5') ? 2.0 : (term === '1' ? 0.5 : 1.0);
+            let incentive = (amt * rate) / 100;
+            row.querySelector('.td-inc-rate').innerText = rate + '%'; row.querySelector('.td-inc-amt').innerText = '₹' + incentive.toFixed(2);
+            total += incentive;
+        });
+        if(valTotal) valTotal.innerText = '₹' + total.toFixed(2);
+    }
+
+    function addRow() {
+        const div = document.createElement('div'); div.className = 'td-account-row';
+        div.innerHTML = `
+            <div class="row-header">Account Entry <span class="remove-btn">×</span></div>
+            <div class="td-field-group"><label>A/C No.</label><input type="text" class="td-acc" placeholder="Account No"></div>
+            <div class="td-field-group"><label>PR No.</label><input type="text" class="td-pr" placeholder="PR No"></div>
+            <div class="td-field-group" style="min-width: 40%;"><label>Depositor Name</label><input type="text" class="td-name" placeholder="Name"></div>
+            <div class="td-field-group"><label>Term</label><select class="td-term"><option value="1">1 Year</option><option value="2">2 Years</option><option value="3">3 Years</option><option value="5" selected>5 Years</option></select></div>
+            <div class="td-field-group"><label>Amount (₹)</label><input type="number" class="td-amt" placeholder="0"></div>
+            <div class="td-field-group" style="min-width: 15%; background: #eee; padding: 5px; border-radius: 4px; text-align: center;"><label>Incentive (<span class="td-inc-rate">2%</span>)</label><div class="td-inc-amt" style="font-weight: bold; color: var(--ip-ruby); margin-top: 5px;">₹0.00</div></div>
+        `;
+        div.querySelector('.remove-btn').addEventListener('click', () => { div.remove(); calculateTotal(); });
+        div.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculateTotal));
+        if(list) list.appendChild(div); calculateTotal();
+    }
+    if(btnAdd) btnAdd.addEventListener('click', addRow);
+    if(list && list.children.length === 0) addRow();
+
+    if(btnGen) {
+        btnGen.addEventListener('click', () => {
+            const rows = document.querySelectorAll('.td-account-row'); if(rows.length === 0) return alert("Please add at least one account.");
+            const btnOriginalText = btnGen.innerText; btnGen.innerText = "Generating..."; btnGen.disabled = true;
+
+            let monthVal = document.getElementById('tdBillMonth').value; if(!monthVal) monthVal = new Date().toISOString().slice(0,7);
+            const dateObj = new Date(monthVal + "-01"); const monthName = dateObj.toLocaleString('default', { month: 'long' }) + " " + dateObj.getFullYear();
+            const today = new Date(); const todayStr = today.getDate() + " " + today.toLocaleString('default', { month: 'long' }) + " " + today.getFullYear();
+
+            let tableHtml = ''; let sno = 1; let sumDep = 0; let sumInc = 0;
+            rows.forEach(row => {
+                let acc = row.querySelector('.td-acc').value || "-"; let pr = row.querySelector('.td-pr').value || "-"; let name = row.querySelector('.td-name').value || "-";
+                let termVal = row.querySelector('.td-term').value; let termStr = termVal + " year" + (termVal === '1' ? '' : 's');
+                let amt = parseFloat(row.querySelector('.td-amt').value) || 0; let rate = (termVal === '5') ? 2 : (termVal === '1' ? 0.5 : 1); let inc = (amt * rate) / 100;
+                sumDep += amt; sumInc += inc;
+                tableHtml += `<tr><td style="border:1px solid black; padding:6px; text-align:center;">${sno++}</td><td style="border:1px solid black; padding:6px;">${acc}</td><td style="border:1px solid black; padding:6px; text-align:center;">${pr}</td><td style="border:1px solid black; padding:6px;">${name}</td><td style="border:1px solid black; padding:6px; text-align:right;">${amt}</td><td style="border:1px solid black; padding:6px; text-align:center;">${termStr}</td><td style="border:1px solid black; padding:6px; text-align:center;">${rate}%</td><td style="border:1px solid black; padding:6px; text-align:right;">${inc}</td></tr>`;
+            });
+            tableHtml += `<tr style="font-weight:bold;"><td colspan="4" style="border:1px solid black; padding:6px; text-align:center;">TOTAL</td><td style="border:1px solid black; padding:6px; text-align:right;">${sumDep}</td><td colspan="2" style="border:1px solid black; padding:6px;"></td><td style="border:1px solid black; padding:6px; text-align:right;">${sumInc}</td></tr>`;
+
+            const wordsInc = getWordsGlobal(sumInc); const bo = boInput ? boInput.value : "BO"; const so = soInput ? soInput.value : "SO"; const ho = hoInput ? hoInput.value : "HO";
+
+            const printDiv = document.createElement('div');
+            printDiv.style.width = '794px'; printDiv.style.minHeight = '1123px'; printDiv.style.padding = '40px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '13px'; printDiv.style.boxSizing = 'border-box';
+
+            printDiv.innerHTML = `
+                <div style="text-align: center; margin-bottom: 25px;"><h2 style="margin: 0; font-size: 18px; text-decoration: underline;">DEPARTMENT OF POST, INDIA</h2></div>
+                <div style="margin-bottom: 25px; font-weight: bold; line-height: 1.6; font-size: 14px;"><div>${bo}</div><div>${so}</div><div>${ho}</div></div>
+                <div style="text-align: center; margin-bottom: 30px; font-weight: bold; line-height: 1.6;">
+                    <div style="font-size: 15px; text-decoration: underline;">TD COMMISSION BPM INCENTIVE BILL</div>
+                    <div style="font-size: 14px;">FOR THE MONTH OF ${monthName}</div><div style="font-size: 14px;">DATED ${todayStr}</div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
+                    <thead><tr style="font-weight:bold; text-align:center; background:#f9f9f9;"><th style="border:1px solid black; padding:6px;">SR NO</th><th style="border:1px solid black; padding:6px;">ACCOUNT NO.</th><th style="border:1px solid black; padding:6px;">PR NO.</th><th style="border:1px solid black; padding:6px;">NAME OF DEPOSITOR</th><th style="border:1px solid black; padding:6px;">DEPOSIT AMOUNT</th><th style="border:1px solid black; padding:6px;">TERM OF DEPOSIT</th><th style="border:1px solid black; padding:6px;">RATE OF INCENTIVE</th><th style="border:1px solid black; padding:6px;">INCENTIVE AMOUNT</th></tr></thead>
+                    <tbody>${tableHtml}</tbody>
+                </table>
+                <div style="margin-bottom: 20px; line-height: 1.8; font-size: 13px;">
+                    <div>Certified that all the above mentioned accounts are opened at Branch Office and not through any SAS agents.</div>
+                    <div>Certified that incentive for above mentioned accounts are not taken earlier.</div>
+                </div>
+                <div style="margin-bottom: 35px; line-height: 1.8; font-weight: bold; font-size: 13px;"><div>Please give the acceptance of incentive amount Rs. ${sumInc}</div><div>Rupees (in words) ${wordsInc}</div></div>
+                <div style="margin-bottom: 35px; line-height: 1.8; font-weight: bold; font-size: 13px;"><div>Acceptance granted for the amount of Rs. ${sumInc}</div><div>Rupees (in words) ${wordsInc}</div></div>
+                <div style="margin-bottom: 60px; line-height: 1.8; font-weight: bold; font-size: 13px;"><div>Incentive amount of Rs. ${sumInc}</div><div>Received Rupees (in words) ${wordsInc}</div></div>
+                <div style="display: flex; justify-content: space-between; text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 80px;">
+                    <div style="width: 30%;"><div style="height: 70px; width: 70px; border: 1px solid black; border-radius: 50%; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; font-size:11px; font-weight:normal;">Date Stamp</div><div>${bo} Date Stamp</div></div>
+                    <div style="width: 30%; display: flex; flex-direction: column; justify-content: flex-end;"><div>Signature of BPM ${bo}</div></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 10px;">
+                    <div style="width: 45%;"><div>Signature of SPM ${so}</div></div><div style="width: 45%;"><div>Signature of BPM ${bo}</div></div>
+                </div>
+                <div style="position: absolute; bottom: 0.5cm; width: calc(100% - 80px); text-align: center; color: rgba(0,0,0,0.3); font-size: 11px; font-weight: bold; letter-spacing: 1.5px;">
+                    Generated via PostCalc | Designed by 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋
+                </div>
+            `;
+            document.body.appendChild(printDiv);
+            html2canvas(printDiv, { scale: 2 }).then(canvas => {
+                document.body.removeChild(printDiv); btnGen.innerText = btnOriginalText; btnGen.disabled = false;
+                const imgData = canvas.toDataURL('image/png'); const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight); pdf.save(`TD_Commission_Bill_${monthName.replace(' ', '_')}.pdf`);
+            }).catch(e => { alert("PDF Engine error: " + e.message); btnGen.innerText = btnOriginalText; btnGen.disabled = false; if(document.body.contains(printDiv)) document.body.removeChild(printDiv); });
+        });
+    }
+}
+
 // BOOTSTRAP PIPELINE
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initCalculator();
     initTreasury();
+    initTDBill();
 });
+               

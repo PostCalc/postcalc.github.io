@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PostCalc - India Post Savings</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <script>
-        // Cache Buster to ensure you get the newest version instantly
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let r of registrations) { r.unregister(); }
@@ -21,42 +21,50 @@
 <body>
     <div id="app-wrapper">
         <div id="appHeader" class="app-header">
-            <button id="btnBackHome" class="back-btn hidden">&#8592; Back</button>
+            <button id="btnBackHome" class="back-btn hidden">
+                <i class="ph ph-arrow-left" style="vertical-align: middle; margin-right: 4px;"></i> Back
+            </button>
             <div class="app-title">
-                <img src="icon-192.png" alt="PostCalc Logo" class="header-logo">
-                <h1>POSTCALC</h1>
+                <img src="icon-192.png" alt="PostCalc Logo" class="header-logo" style="border-radius: 6px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                    <h1>POSTCALC</h1>
+                    <span id="headerSubtitle" style="font-size: 0.75rem; font-weight: 500; opacity: 0.9; margin-top: -4px;">India Post Assistant</span>
+                </div>
             </div>
         </div>
 
         <div class="main-container">
             <div id="viewHome" class="app-view active-view">
                 <div class="home-grid">
-                    <div class="home-card card-savings" id="navSavings">
+                    <div class="home-card card-savings" id="navSavings" style="border-top: 4px solid #1D4ED8;">
+                        <i class="ph ph-piggy-bank" style="font-size: 2.2rem; color: #1D4ED8; background: #EFF6FF; padding: 12px; border-radius: 12px;"></i>
                         <h3>Savings Schemes</h3>
-                        <p>Calculate TD, RD, MIS, SSA & more</p>
+                        <p>TD, RD, MIS, SSA</p>
                     </div>
-                    <div class="home-card card-insurance" id="navInsurance">
+                    <div class="home-card card-insurance" id="navInsurance" style="border-top: 4px solid #047857;">
+                        <i class="ph ph-shield-check" style="font-size: 2.2rem; color: #047857; background: #ECFDF5; padding: 12px; border-radius: 12px;"></i>
                         <h3>Life Insurance</h3>
-                        <p>PLI & RPLI Endowment Quotes</p>
+                        <p>PLI & RPLI Quotes</p>
                     </div>
-                    <div class="home-card card-treasury" id="navTreasury">
+                    <div class="home-card card-treasury" id="navTreasury" style="border-top: 4px solid #B45309;">
+                        <i class="ph ph-vault" style="font-size: 2.2rem; color: #B45309; background: #FFFBEB; padding: 12px; border-radius: 12px;"></i>
                         <h3>Treasury Manager</h3>
-                        <p>B.O Daily Account & Cash Ledger</p>
+                        <p>B.O Daily Account</p>
                     </div>
-                    <div class="home-card card-tdbill" id="navTDBill">
+                    <div class="home-card card-tdbill" id="navTDBill" style="border-top: 4px solid var(--ip-red);">
+                        <i class="ph ph-receipt" style="font-size: 2.2rem; color: var(--ip-red); background: #FEF2F2; padding: 12px; border-radius: 12px;"></i>
                         <h3>BPM Incentives</h3>
-                        <p>TD Commission Bill Generator</p>
+                        <p>TD Commission Bill</p>
                     </div>
                 </div>
             </div>
-
-            <div id="viewCalculator" class="app-view hidden-view">
+                        <div id="viewCalculator" class="app-view hidden-view">
                 <div class="card input-section">
                     <div class="toggle-row" id="mainCategoryToggle" style="margin-bottom: 24px;">
                         <div class="toggle-btn active" data-cat="savings" style="font-size: 0.9rem;">Savings Schemes</div>
                         <div class="toggle-btn" data-cat="insurance" style="font-size: 0.9rem;">Life Insurance</div>
                     </div>
-                    <h3>Select Scheme</h3>
+                    <h3 style="display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-magnifying-glass" style="color: var(--ip-red);"></i> Select Scheme</h3>
                     <select id="schemeSelector" style="display: none;">
                         <option value="">-- Choose Scheme --</option>
                         <option value="sb">SB - Savings Account</option>
@@ -74,7 +82,7 @@
                     <div class="custom-dropdown" id="customSchemeDropdown">
                         <div class="dropdown-header" id="dropdownHeader">
                             <span id="ddHeaderText">-- Choose Saving Scheme --</span>
-                            <div class="dropdown-arrow">▼</div>
+                            <div class="dropdown-arrow"><i class="ph ph-caret-down"></i></div>
                         </div>
                         <ul class="dropdown-list" id="dropdownList">
                             <li data-value="sb" data-category="savings">SB - Savings Account</li>
@@ -91,14 +99,18 @@
                         </ul>
                     </div>
                     <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
-                        <span>View Scheme Details</span>
+                        <i class="ph ph-info" style="font-size: 1.1rem;"></i> <span>View Scheme Details</span>
                     </button>
                 </div>
+
                 <div class="card hidden" id="inputCard">
-                    <h3>Enter Details</h3>
+                    <h3 style="display: flex; align-items: center; gap: 8px; color: var(--text-main); border-bottom: none;"><i class="ph ph-pencil-simple-line" style="color: var(--ip-red);"></i> Enter Details</h3>
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; margin: 16px 0 8px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Date of Opening / First Deposit</label>
-                        <input type="date" id="dateOpen" class="native-select" style="margin-bottom: 8px;">
+                        <label style="text-transform: uppercase; letter-spacing: 0.8px;">Date of Opening / First Deposit</label>
+                        <div style="position: relative;">
+                            <i class="ph ph-calendar-blank" style="position: absolute; left: 14px; top: 14px; font-size: 1.2rem; color: var(--text-muted);"></i>
+                            <input type="date" id="dateOpen" class="native-select" style="padding-left: 44px; margin-bottom: 8px;">
+                        </div>
                         <small style="display: block; color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">(Used to calculate interest & GST rules)</small>
                     </div>
                         
@@ -219,6 +231,7 @@
                     <div id="warningBox" class="warning-box"></div>
                     <button class="btn btn-calc" id="btnCalculate">Calculate</button>
                 </div>
+                
                 <div class="card hidden" id="resultsCard">
                     <div class="statement-header">
                         <div class="st-left">
@@ -265,106 +278,111 @@
                         </div>
                     </div>
                     <p id="disclaimer">* Results calculated based on official Department of Posts rules. Actual values may vary.</p>
-                    <div class="footer-brand">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
                     <div class="download-actions">
-                        <button class="btn btn-download btn-share" id="btnShare">Share / Save Report</button>
+                        <button class="btn btn-download btn-share" id="btnShare"><i class="ph ph-share-network"></i> Share / Save Report</button>
                     </div>
                 </div>
-    </div>
-                                        <div id="viewTreasury" class="app-view hidden-view">
+                            </div>
+                                            <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
-                    <div class="treasury-header">
-                        <h2>B.O Daily Account (A.C.G-22(A))</h2>
+                    <div class="treasury-header" style="border-bottom: 2px solid var(--border-light); padding-bottom: 15px; margin-bottom: 20px;">
+                        <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="ph ph-vault" style="color: var(--ip-red);"></i> B.O Daily Account</h2>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <input type="date" id="treasuryDate" class="treasury-date-picker">
+                            <input type="date" id="treasuryDate" class="treasury-date-picker" style="padding: 8px; width: auto;">
                             <div class="kebab-menu" id="btnTreasuryMenu">
                                 <span>&#8942;</span>
                                 <div class="kebab-dropdown hidden" id="treasuryDropdown">
-                                    <div class="kebab-item" id="optPastBoda">Download Past BODA</div>
-                                    <div class="kebab-item" id="optExcel">Monthly PDF Report</div>
+                                    <div class="kebab-item" id="optPastBoda"><i class="ph ph-clock-counter-clockwise"></i> Download Past BODA</div>
+                                    <div class="kebab-item" id="optExcel"><i class="ph ph-file-pdf"></i> Monthly PDF Report</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="balance-row opening-balance">
-                        <label>Opening Balance (₹)</label>
-                        <input type="number" id="valOpeningBal" value="0" step="any">
+                        <label style="margin: 0; display: flex; align-items: center; gap: 6px;"><i class="ph ph-wallet"></i> Opening Balance (₹)</label>
+                        <input type="number" id="valOpeningBal" value="0" step="any" style="width: 140px; text-align: right; background: white;">
                     </div>
                     <div class="ledger-grid">
                         <div class="ledger-col">
-                            <h3 class="col-title receipts-title">Receipts (+)</h3>
-                            <div id="receiptsList" class="transaction-list">
-                                </div>
-                            <button id="btnAddReceipt" class="add-trans-btn">+ Add Receipt</button>
+                            <h3 class="col-title receipts-title"><i class="ph ph-arrow-down-left"></i> Receipts (+)</h3>
+                            <div id="receiptsList" class="transaction-list"></div>
+                            <button id="btnAddReceipt" class="add-trans-btn"><i class="ph ph-plus-circle"></i> Add Receipt</button>
                         </div>
                         <div class="ledger-col">
-                            <h3 class="col-title payments-title">Payments (-)</h3>
-                            <div id="paymentsList" class="transaction-list">
-                                </div>
-                            <button id="btnAddPayment" class="add-trans-btn">+ Add Payment</button>
+                            <h3 class="col-title payments-title"><i class="ph ph-arrow-up-right"></i> Payments (-)</h3>
+                            <div id="paymentsList" class="transaction-list"></div>
+                            <button id="btnAddPayment" class="add-trans-btn"><i class="ph ph-minus-circle"></i> Add Payment</button>
                         </div>
                     </div>
                     <div class="balance-row closing-balance">
-                        <label>Calculated Closing Balance</label>
+                        <label style="margin: 0; display: flex; align-items: center; gap: 6px;"><i class="ph ph-lock-key"></i> Calculated Closing Balance</label>
                         <div id="valClosingBal" class="closing-amount">₹0.00</div>
                     </div>
                     <div class="treasury-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button id="btnSaveLedger" class="action-btn save-btn">Save Entry</button>
-                        <button id="btnGenerateBODA" class="action-btn pdf-btn">Generate PDF</button>
+                        <button id="btnSaveLedger" class="action-btn" style="background: #1F2937; color: white; border: none; border-radius: 12px; padding: 16px; font-weight: 700; flex: 1;"><i class="ph ph-floppy-disk"></i> Save Entry</button>
+                        <button id="btnGenerateBODA" class="pdf-btn" style="margin-top: 0; flex: 1;"><i class="ph ph-file-pdf"></i> Generate PDF</button>
                     </div>
                 </div>
             </div>
 
             <div id="viewTDBill" class="app-view hidden-view">
-                <div class="treasury-card">
-                    <div class="treasury-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 5px;">
-                        <h2>TD Commission Bill</h2>
-                        <input type="month" id="tdBillMonth" class="treasury-date-picker">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div class="card" style="flex: 1; margin: 0; padding: 16px; text-align: center; border-top: 3px solid var(--ip-red);">
+                        <i class="ph ph-bank" style="font-size: 1.8rem; color: var(--ip-red); margin-bottom: 8px;"></i>
+                        <label style="font-size: 0.65rem; margin: 0 0 4px 0; text-transform: uppercase;">Branch Office (BO)</label>
+                        <input type="text" id="tdBoName" value="Your B.O" style="padding: 4px; text-align: center; border: none; background: transparent; font-size: 0.9rem; border-bottom: 1px dashed var(--border-light); border-radius: 0;">
                     </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 30%;">
-                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Branch Office (BO)</label>
-                            <input type="text" id="tdBoName" value="Your B.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
-                        </div>
-                        <div style="flex: 1; min-width: 30%;">
-                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Account Office (SO)</label>
-                            <input type="text" id="tdSoName" value="Your S.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
-                        </div>
-                        <div style="flex: 1; min-width: 30%;">
-                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Head Office (HO)</label>
-                            <input type="text" id="tdHoName" value="Your H.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
-                        </div>
+                    <div class="card" style="flex: 1; margin: 0; padding: 16px; text-align: center; border-top: 3px solid var(--ip-red);">
+                        <i class="ph ph-buildings" style="font-size: 1.8rem; color: var(--ip-red); margin-bottom: 8px;"></i>
+                        <label style="font-size: 0.65rem; margin: 0 0 4px 0; text-transform: uppercase;">Account Office (SO)</label>
+                        <input type="text" id="tdSoName" value="Your S.O" style="padding: 4px; text-align: center; border: none; background: transparent; font-size: 0.9rem; border-bottom: 1px dashed var(--border-light); border-radius: 0;">
                     </div>
-
-                    <div class="ledger-grid">
-                        <div class="ledger-col" style="width: 100%;">
-                            <h3 class="col-title" style="color: var(--ip-ruby); border-bottom-color: var(--ip-ruby);">Eligible TD Accounts</h3>
-                            <div id="tdAccountList" class="transaction-list">
-                                </div>
-                            <button id="btnAddTdAccount" class="add-trans-btn" style="border-color: var(--ip-ruby); color: var(--ip-ruby);">+ Add TD Account</button>
-                        </div>
-                    </div>
-
-                    <div class="balance-row closing-balance" style="margin-top: 25px; background: #FFF0F0; border-color: #FCA5A5;">
-                        <label style="color: var(--ip-ruby);">Total Incentive Amount</label>
-                        <div id="valTotalIncentive" class="closing-amount" style="color: var(--ip-ruby);">₹0.00</div>
-                    </div>
-
-                    <div class="treasury-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button id="btnGenerateTDBill" class="action-btn pdf-btn" style="width: 100%;">Generate Official PDF Bill</button>
+                    <div class="card" style="flex: 1; margin: 0; padding: 16px; text-align: center; border-top: 3px solid var(--ip-red);">
+                        <i class="ph ph-buildings" style="font-size: 1.8rem; color: var(--ip-red); margin-bottom: 8px;"></i>
+                        <label style="font-size: 0.65rem; margin: 0 0 4px 0; text-transform: uppercase;">Head Office (HO)</label>
+                        <input type="text" id="tdHoName" value="Your H.O" style="padding: 4px; text-align: center; border: none; background: transparent; font-size: 0.9rem; border-bottom: 1px dashed var(--border-light); border-radius: 0;">
                     </div>
                 </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--ip-red); padding-bottom: 12px; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-users-three" style="color: var(--ip-red); font-size: 1.4rem;"></i> Eligible TD Accounts
+                        </h3>
+                        <input type="month" id="tdBillMonth" class="native-select" style="width: auto; padding: 6px 10px; font-size: 0.85rem;">
+                    </div>
+
+                    <div id="tdAccountList" class="transaction-list">
+                        </div>
+                    
+                    <button id="btnAddTdAccount" class="add-trans-btn" style="border-color: var(--ip-red); color: var(--ip-red);">
+                        <i class="ph ph-plus-circle" style="vertical-align: middle;"></i> Add TD Account
+                    </button>
+                </div>
+
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: #FEF2F2; padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-money" style="font-size: 2rem; color: var(--ip-red);"></i>
+                        </div>
+                        <label style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Total Incentive Amount</label>
+                    </div>
+                    <div id="valTotalIncentive" style="font-size: 2.2rem; font-weight: 800; color: var(--ip-red);">₹0.00</div>
+                </div>
+
+                <button id="btnGenerateTDBill" class="pdf-btn" style="margin-top: 0; display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-file-pdf" style="font-size: 1.5rem; background: white; color: var(--ip-red); padding: 4px; border-radius: 6px;"></i> 
+                        <span style="font-size: 1.1rem;">Generate Official PDF Bill</span>
+                    </div>
+                    <i class="ph ph-caret-right" style="font-size: 1.2rem;"></i>
+                </button>
             </div>
-
-        </div>
-
-        <div class="page-footer">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
-
-        <div class="modal-overlay" id="infoModal">
+                            </div>
+                                    <div class="modal-overlay" id="infoModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Scheme Details</h3>
+                    <h3 style="display: flex; align-items: center; gap: 8px;"><i class="ph ph-info" style="color: var(--ip-red);"></i> Scheme Details</h3>
                     <button class="modal-close" id="closeInfo">×</button>
                 </div>
                 <div class="modal-body"><div id="ruleContent" class="rule-content"></div></div>
@@ -374,25 +392,29 @@
         <div class="modal-overlay" id="toolsModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 id="toolsModalTitle">Treasury Tools</h3>
+                    <h3 id="toolsModalTitle" style="display: flex; align-items: center; gap: 8px;"><i class="ph ph-wrench" style="color: var(--ip-red);"></i> Treasury Tools</h3>
                     <button class="modal-close" id="closeTools">×</button>
                 </div>
                 <div class="modal-body">
                     <div id="uiPastBoda" class="hidden">
-                        <label>Select Date to Download BODA:</label>
+                        <label><i class="ph ph-calendar-check"></i> Select Date to Download BODA:</label>
                         <input type="date" id="inputPastBoda" class="native-select" style="margin-bottom: 20px;">
-                        <button id="btnExecutePastBoda" class="btn btn-calc" style="margin-top:0;">Fetch & Generate PDF</button>
+                        <button id="btnExecutePastBoda" class="btn btn-calc" style="margin-top:0;"><i class="ph ph-download-simple"></i> Fetch & Generate PDF</button>
                     </div>
                     <div id="uiExcel" class="hidden">
-                        <label>Select Month for PDF Report:</label>
+                        <label><i class="ph ph-calendar-check"></i> Select Month for PDF Report:</label>
                         <input type="month" id="inputExcelMonth" class="native-select" style="margin-bottom: 20px;">
-                        <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;">Download Monthly PDF</button>
+                        <button id="btnExecuteExcel" class="btn btn-calc" style="margin-top:0;"><i class="ph ph-download-simple"></i> Download Monthly PDF</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="page-footer">
+            <i class="ph-fill ph-shield-check" style="color: #10B981; font-size: 1.2rem;"></i> Designed by 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋
+        </div>
+
     </div>
     <script src="script.js"></script>
 </body>
-            </html>
-            
+</html>

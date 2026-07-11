@@ -29,7 +29,6 @@
         </div>
 
         <div class="main-container">
-            <!-- VIEW 1: HOME SCREEN -->
             <div id="viewHome" class="app-view active-view">
                 <div class="home-grid">
                     <div class="home-card card-savings" id="navSavings">
@@ -44,10 +43,13 @@
                         <h3>Treasury Manager</h3>
                         <p>B.O Daily Account & Cash Ledger</p>
                     </div>
+                    <div class="home-card card-tdbill" id="navTDBill">
+                        <h3>BPM Incentives</h3>
+                        <p>TD Commission Bill Generator</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- VIEW 2: CALCULATOR -->
             <div id="viewCalculator" class="app-view hidden-view">
                 <div class="card input-section">
                     <div class="toggle-row" id="mainCategoryToggle" style="margin-bottom: 24px;">
@@ -91,14 +93,14 @@
                     <button id="btnInfo" class="btn-info-inline hidden" aria-label="Scheme Rules">
                         <span>View Scheme Details</span>
                     </button>
-    </div>
-                    <div class="card hidden" id="inputCard">
+                </div>
+                <div class="card hidden" id="inputCard">
                     <h3>Enter Details</h3>
-                                        <div style="margin-bottom: 20px;">
+                    <div style="margin-bottom: 20px;">
                         <label style="display: block; margin: 16px 0 8px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Date of Opening / First Deposit</label>
                         <input type="date" id="dateOpen" class="native-select" style="margin-bottom: 8px;">
                         <small style="display: block; color: var(--text-muted); font-size: 0.75rem; font-weight: 500;">(Used to calculate interest & GST rules)</small>
-                                        </div>
+                    </div>
                         
                     <form id="calcForm">
                         <div id="input-sb" class="input-group hidden">
@@ -216,8 +218,8 @@
                     </form>
                     <div id="warningBox" class="warning-box"></div>
                     <button class="btn btn-calc" id="btnCalculate">Calculate</button>
-                                    </div>
-                    <div class="card hidden" id="resultsCard">
+                </div>
+                <div class="card hidden" id="resultsCard">
                     <div class="statement-header">
                         <div class="st-left">
                             <h2 id="printSchemeName">Scheme Name</h2>
@@ -268,10 +270,8 @@
                         <button class="btn btn-download btn-share" id="btnShare">Share / Save Report</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- VIEW 3: TREASURY MANAGER -->
-            <div id="viewTreasury" class="app-view hidden-view">
+    </div>
+                                        <div id="viewTreasury" class="app-view hidden-view">
                 <div class="treasury-card">
                     <div class="treasury-header">
                         <h2>B.O Daily Account (A.C.G-22(A))</h2>
@@ -294,15 +294,13 @@
                         <div class="ledger-col">
                             <h3 class="col-title receipts-title">Receipts (+)</h3>
                             <div id="receiptsList" class="transaction-list">
-                                <!-- Populated dynamically by JS -->
-                            </div>
+                                </div>
                             <button id="btnAddReceipt" class="add-trans-btn">+ Add Receipt</button>
                         </div>
                         <div class="ledger-col">
                             <h3 class="col-title payments-title">Payments (-)</h3>
                             <div id="paymentsList" class="transaction-list">
-                                <!-- Populated dynamically by JS -->
-                            </div>
+                                </div>
                             <button id="btnAddPayment" class="add-trans-btn">+ Add Payment</button>
                         </div>
                     </div>
@@ -316,11 +314,53 @@
                     </div>
                 </div>
             </div>
+
+            <div id="viewTDBill" class="app-view hidden-view">
+                <div class="treasury-card">
+                    <div class="treasury-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 5px;">
+                        <h2>TD Commission Bill</h2>
+                        <input type="month" id="tdBillMonth" class="treasury-date-picker">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 30%;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Branch Office (BO)</label>
+                            <input type="text" id="tdBoName" value="Your B.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
+                        </div>
+                        <div style="flex: 1; min-width: 30%;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Account Office (SO)</label>
+                            <input type="text" id="tdSoName" value="Your S.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
+                        </div>
+                        <div style="flex: 1; min-width: 30%;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Head Office (HO)</label>
+                            <input type="text" id="tdHoName" value="Your H.O" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
+                        </div>
+                    </div>
+
+                    <div class="ledger-grid">
+                        <div class="ledger-col" style="width: 100%;">
+                            <h3 class="col-title" style="color: var(--ip-ruby); border-bottom-color: var(--ip-ruby);">Eligible TD Accounts</h3>
+                            <div id="tdAccountList" class="transaction-list">
+                                </div>
+                            <button id="btnAddTdAccount" class="add-trans-btn" style="border-color: var(--ip-ruby); color: var(--ip-ruby);">+ Add TD Account</button>
+                        </div>
+                    </div>
+
+                    <div class="balance-row closing-balance" style="margin-top: 25px; background: #FFF0F0; border-color: #FCA5A5;">
+                        <label style="color: var(--ip-ruby);">Total Incentive Amount</label>
+                        <div id="valTotalIncentive" class="closing-amount" style="color: var(--ip-ruby);">₹0.00</div>
+                    </div>
+
+                    <div class="treasury-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button id="btnGenerateTDBill" class="action-btn pdf-btn" style="width: 100%;">Generate Official PDF Bill</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="page-footer">Designed By 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋</div>
 
-        <!-- INFO MODAL -->
         <div class="modal-overlay" id="infoModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -331,7 +371,6 @@
             </div>
         </div>
 
-        <!-- TOOLS MODAL -->
         <div class="modal-overlay" id="toolsModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -355,5 +394,5 @@
     </div>
     <script src="script.js"></script>
 </body>
-    </html>
-    
+            </html>
+            

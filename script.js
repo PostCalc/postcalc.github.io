@@ -614,59 +614,55 @@ function initTDBill() {
             });
             tableHtml += `<tr style="font-weight:bold;"><td colspan="4" style="border:1px solid black; padding:6px; text-align:center;">TOTAL</td><td style="border:1px solid black; padding:6px; text-align:right;">${sumDep}</td><td colspan="2" style="border:1px solid black; padding:6px;"></td><td style="border:1px solid black; padding:6px; text-align:right;">${sumInc}</td></tr>`;
 
-            const wordsInc = getWordsGlobal(sumInc) + " Only"; const bo = boInput ? boInput.value : "BO"; const so = soInput ? soInput.value : "SO"; const ho = hoInput ? hoInput.value : "HO";
+                        const wordsInc = getWordsGlobal(sumInc) + " Only"; const bo = boInput ? boInput.value : "BO"; const so = soInput ? soInput.value : "SO"; const ho = hoInput ? hoInput.value : "HO";
 
             const printDiv = document.createElement('div');
             printDiv.style.width = '794px'; printDiv.style.minHeight = '1123px'; printDiv.style.padding = '45px 50px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '13px'; printDiv.style.boxSizing = 'border-box';
 
             printDiv.innerHTML = `
-                <div style="text-align: center; margin-bottom: 15px; font-weight: bold; font-size: 16px;">DEPARTMENT OF POST, INDIA</div>
-                <div style="margin-bottom: 20px; font-weight: bold; line-height: 1.5; font-size: 14px;">
+                <div style="text-align: center; margin-bottom: 25px;"><h2 style="margin: 0; font-size: 18px; text-decoration: underline;">DEPARTMENT OF POST, INDIA</h2></div>
+                <div style="margin-bottom: 25px; font-weight: bold; line-height: 1.6; font-size: 14px;">
                     <div>${bo}</div>
                     <div>${so}</div>
                     <div>${ho}</div>
                 </div>
-                <div style="text-align: center; margin-bottom: 25px; font-weight: bold; line-height: 1.5;">
-                    <div style="font-size: 15px;">TD COMMISSION BPM INCENTIVE BILL</div>
-                    <div style="font-size: 14px;">FOR THE MONTH OF ${monthName.toUpperCase()}</div>
-                    <div style="font-size: 14px;">DATED ${todayStr.toUpperCase()}</div>
+                <div style="text-align: center; margin-bottom: 30px; font-weight: bold; line-height: 1.6;">
+                    <div style="font-size: 15px; text-decoration: underline;">TD COMMISSION BPM INCENTIVE BILL</div>
+                    <div style="font-size: 14px;">FOR THE MONTH OF ${monthName}</div>
+                    <div style="font-size: 14px;">DATED ${todayStr}</div>
                 </div>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 12px;">
-                    <thead><tr style="text-align:center;"><th style="border:1px solid black; padding:6px;">SR NO</th><th style="border:1px solid black; padding:6px;">ACCOUNT<br>NO.</th><th style="border:1px solid black; padding:6px;">PR<br>NO.</th><th style="border:1px solid black; padding:6px;">NAME OF<br>DEPOSITOR</th><th style="border:1px solid black; padding:6px;">DEPOSIT<br>AMOUNT</th><th style="border:1px solid black; padding:6px;">TERM OF<br>DEPOSIT</th><th style="border:1px solid black; padding:6px;">RATE OF<br>INCENTIVE</th><th style="border:1px solid black; padding:6px;">INCENTIVE<br>AMOUNT</th></tr></thead>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px;">
+                    <thead><tr style="font-weight:bold; text-align:center;"><th style="border:1px solid black; padding:6px;">SR NO</th><th style="border:1px solid black; padding:6px;">ACCOUNT NO.</th><th style="border:1px solid black; padding:6px;">PR NO.</th><th style="border:1px solid black; padding:6px;">NAME OF DEPOSITOR</th><th style="border:1px solid black; padding:6px;">DEPOSIT AMOUNT</th><th style="border:1px solid black; padding:6px;">TERM OF DEPOSIT</th><th style="border:1px solid black; padding:6px;">RATE OF INCENTIVE</th><th style="border:1px solid black; padding:6px;">INCENTIVE AMOUNT</th></tr></thead>
                     <tbody>${tableHtml}</tbody>
                 </table>
-                <div style="margin-bottom: 15px; line-height: 1.6; font-size: 13px;">
+                <div style="margin-bottom: 20px; line-height: 1.8; font-size: 13px;">
                     <div>Certified that all the above mentioned accounts are opened at Branch Office and not through any SAS agents.</div>
                     <div>Certified that incentive for above mentioned accounts are not taken earlier.</div>
                 </div>
-                <div style="margin-bottom: 15px; line-height: 1.6; font-size: 13px;">
+                <div style="margin-bottom: 35px; line-height: 1.8; font-weight: bold; font-size: 13px;">
                     <div>Please give the acceptance of incentive amount Rs. ${sumInc}</div>
                     <div>Rupees (in words) ${wordsInc}</div>
                 </div>
-                <div style="margin-bottom: 15px; line-height: 1.6; font-size: 13px;">
+                <div style="margin-bottom: 35px; line-height: 1.8; font-weight: bold; font-size: 13px;">
                     <div>Acceptance granted for the amount of Rs. ${sumInc}</div>
                     <div>Rupees (in words) ${wordsInc}</div>
                 </div>
-                <div style="margin-bottom: 40px; line-height: 1.6; font-size: 13px;">
+                <div style="margin-bottom: 60px; line-height: 1.8; font-weight: bold; font-size: 13px;">
                     <div>Incentive amount of Rs. ${sumInc}</div>
                     <div>Received Rupees (in words) ${wordsInc}</div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 13px; font-weight: bold; margin-bottom: 45px;">
-                    <div style="width: 45%; text-align: left;">
-                        <div style="height: 65px; width: 65px; border: 1px solid black; border-radius: 50%; margin-bottom: 5px;"></div>
+                <div style="display: flex; justify-content: space-between; text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 80px;">
+                    <div style="width: 30%;">
+                        <div style="height: 70px; width: 70px; border: 1px solid black; border-radius: 50%; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; font-size:11px; font-weight:normal;">Date Stamp</div>
                         <div>${bo} Date Stamp</div>
                     </div>
-                    <div style="width: 45%; text-align: right;">
+                    <div style="width: 30%; display: flex; flex-direction: column; justify-content: flex-end;">
                         <div>Signature of BPM ${bo}</div>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 13px; font-weight: bold; margin-bottom: 10px;">
-                    <div style="width: 45%; text-align: left;">
-                        <div>Signature of SPM ${so}</div>
-                    </div>
-                    <div style="width: 45%; text-align: right;">
-                        <div>Signature of BPM ${bo}</div>
-                    </div>
+                <div style="display: flex; justify-content: space-between; text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 10px;">
+                    <div style="width: 45%;"><div>Signature of SPM ${so}</div></div>
+                    <div style="width: 45%;"><div>Signature of BPM ${bo}</div></div>
                 </div>
                 <div style="position: absolute; bottom: 0.5cm; width: calc(100% - 100px); text-align: center; color: rgba(0,0,0,0.3); font-size: 11px; font-weight: bold; letter-spacing: 1.5px;">
                     Generated via PostCalc | Designed by 𝐂𝐇𝐄𝐓@𝐍 𝐏@𝐓𝐈𝐋
@@ -681,7 +677,7 @@ function initTDBill() {
             }).catch(e => { alert("PDF Engine error: " + e.message); btnGen.innerText = btnOriginalText; btnGen.disabled = false; if(document.body.contains(printDiv)) document.body.removeChild(printDiv); });
         });
     }
-}
+                       }
 
 // BOOTSTRAP PIPELINE
 document.addEventListener('DOMContentLoaded', () => {

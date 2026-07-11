@@ -166,3 +166,60 @@ tr:nth-child(even) td:first-child { background-color: #F8FAFC; }
 input:disabled { background: #f1f5f9 !important; color: #94a3b8 !important; border-color: #e2e8f0 !important; cursor: not-allowed; }
 .save-btn:disabled { background: #94a3b8 !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
     
+/* --- NEW TD BILL GENERATOR STYLES --- */
+.card-tdbill { 
+    background: linear-gradient(135deg, #6366F1, #4338CA); 
+}
+
+.td-account-row { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    padding: 12px; 
+    border: 1px solid var(--border-light); 
+    border-radius: 6px; 
+    margin-bottom: 10px; 
+    background: #FAFAF9; 
+}
+
+.td-account-row input, .td-account-row select { 
+    padding: 8px; 
+    border: 1px solid var(--border-table); 
+    border-radius: 4px; 
+    font-family: 'Poppins', sans-serif; 
+    font-size: 0.85rem; 
+    font-weight: 600;
+}
+
+.td-account-row .row-header { 
+    width: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 5px; 
+    font-weight: bold; 
+    color: var(--ip-ruby); 
+    font-size: 0.85rem;
+}
+
+.td-account-row .remove-btn { 
+    color: #CC0000; 
+    cursor: pointer; 
+    font-size: 1.2rem; 
+    font-weight: bold; 
+    padding: 0 5px; 
+}
+
+.td-field-group { 
+    display: flex; 
+    flex-direction: column; 
+    flex: 1; 
+    min-width: 20%; 
+}
+
+.td-field-group label { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+    font-weight: 700; 
+    margin-bottom: 3px; 
+    }

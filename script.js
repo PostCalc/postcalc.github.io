@@ -530,21 +530,68 @@ function initTDBill() {
         if(valTotal) valTotal.innerText = '₹' + total.toFixed(2);
     }
 
+    // THE UPDATED ROW GENERATOR WITH PREMIUM ICONS
     function addRow() {
         const div = document.createElement('div'); div.className = 'td-account-row';
         div.innerHTML = `
-            <div class="row-header">Account Entry <span class="remove-btn">×</span></div>
-            <div class="td-field-group"><label>A/C No.</label><input type="text" class="td-acc" placeholder="Account No"></div>
-            <div class="td-field-group"><label>PR No.</label><input type="text" class="td-pr" placeholder="PR No"></div>
-            <div class="td-field-group" style="min-width: 40%;"><label>Depositor Name</label><input type="text" class="td-name" placeholder="Name"></div>
-            <div class="td-field-group"><label>Term</label><select class="td-term"><option value="1">1 Year</option><option value="2">2 Years</option><option value="3">3 Years</option><option value="5" selected>5 Years</option></select></div>
-            <div class="td-field-group"><label>Amount (₹)</label><input type="number" class="td-amt" placeholder="0"></div>
-            <div class="td-field-group" style="min-width: 15%; background: #eee; padding: 5px; border-radius: 4px; text-align: center;"><label>Incentive (<span class="td-inc-rate">2%</span>)</label><div class="td-inc-amt" style="font-weight: bold; color: var(--ip-ruby); margin-top: 5px;">₹0.00</div></div>
+            <div class="row-header">
+                <span style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-bookmark-simple" style="color:var(--ip-red);"></i> Account Entry</span> 
+                <span class="remove-btn"><i class="ph ph-x"></i></span>
+            </div>
+            <div class="td-field-group">
+                <label>A/C No.</label>
+                <div style="position: relative;">
+                    <i class="ph ph-identification-card" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--text-muted);"></i>
+                    <input type="text" class="td-acc" placeholder="Account No." style="padding-left: 36px;">
+                </div>
+            </div>
+            <div class="td-field-group">
+                <label>PR No.</label>
+                <div style="position: relative;">
+                    <i class="ph ph-bookmark" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--text-muted);"></i>
+                    <input type="text" class="td-pr" placeholder="PR No." style="padding-left: 36px;">
+                </div>
+            </div>
+            <div class="td-field-group" style="min-width: 30%;">
+                <label>Depositor Name</label>
+                <div style="position: relative;">
+                    <i class="ph ph-user" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--text-muted);"></i>
+                    <input type="text" class="td-name" placeholder="Name" style="padding-left: 36px;">
+                </div>
+            </div>
+            <div class="td-field-group">
+                <label>Term</label>
+                <div style="position: relative;">
+                    <i class="ph ph-clock" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--text-muted);"></i>
+                    <select class="td-term" style="padding-left: 36px; appearance: none;">
+                        <option value="1">1 Year</option>
+                        <option value="2">2 Years</option>
+                        <option value="3">3 Years</option>
+                        <option value="5" selected>5 Years</option>
+                    </select>
+                    <i class="ph ph-caret-down" style="position: absolute; right: 10px; top: 14px; font-size: 0.9rem; color: var(--text-muted); pointer-events: none;"></i>
+                </div>
+            </div>
+            <div class="td-field-group">
+                <label>Amount (₹)</label>
+                <div style="position: relative;">
+                    <i class="ph ph-currency-inr" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--text-muted);"></i>
+                    <input type="number" class="td-amt" placeholder="0.00" style="padding-left: 36px;">
+                </div>
+            </div>
+            <div class="td-field-group" style="min-width: 20%;">
+                <label>Incentive (<span class="td-inc-rate">2%</span>)</label>
+                <div style="position: relative;">
+                    <i class="ph ph-gift" style="position: absolute; left: 10px; top: 12px; font-size: 1.1rem; color: var(--ip-red);"></i>
+                    <div class="td-inc-amt" style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border-table); border-radius: 6px; font-size: 0.85rem; font-weight: 700; color: var(--ip-red); background: white;">₹0.00</div>
+                </div>
+            </div>
         `;
         div.querySelector('.remove-btn').addEventListener('click', () => { div.remove(); calculateTotal(); });
         div.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculateTotal));
         if(list) list.appendChild(div); calculateTotal();
     }
+    
     if(btnAdd) btnAdd.addEventListener('click', addRow);
     if(list && list.children.length === 0) addRow();
 
@@ -567,7 +614,7 @@ function initTDBill() {
             });
             tableHtml += `<tr style="font-weight:bold;"><td colspan="4" style="border:1px solid black; padding:6px; text-align:center;">TOTAL</td><td style="border:1px solid black; padding:6px; text-align:right;">${sumDep}</td><td colspan="2" style="border:1px solid black; padding:6px;"></td><td style="border:1px solid black; padding:6px; text-align:right;">${sumInc}</td></tr>`;
 
-                        const wordsInc = getWordsGlobal(sumInc) + " Only"; const bo = boInput ? boInput.value : "BO"; const so = soInput ? soInput.value : "SO"; const ho = hoInput ? hoInput.value : "HO";
+            const wordsInc = getWordsGlobal(sumInc) + " Only"; const bo = boInput ? boInput.value : "BO"; const so = soInput ? soInput.value : "SO"; const ho = hoInput ? hoInput.value : "HO";
 
             const printDiv = document.createElement('div');
             printDiv.style.width = '794px'; printDiv.style.minHeight = '1123px'; printDiv.style.padding = '45px 50px'; printDiv.style.background = 'white'; printDiv.style.position = 'fixed'; printDiv.style.top = '-10000px'; printDiv.style.color = 'black'; printDiv.style.fontFamily = 'Arial, sans-serif'; printDiv.style.fontSize = '13px'; printDiv.style.boxSizing = 'border-box';
@@ -634,7 +681,7 @@ function initTDBill() {
             }).catch(e => { alert("PDF Engine error: " + e.message); btnGen.innerText = btnOriginalText; btnGen.disabled = false; if(document.body.contains(printDiv)) document.body.removeChild(printDiv); });
         });
     }
-                   }
+}
 
 // BOOTSTRAP PIPELINE
 document.addEventListener('DOMContentLoaded', () => {
@@ -643,4 +690,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initTreasury();
     initTDBill();
 });
-               
+           

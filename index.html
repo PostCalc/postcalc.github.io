@@ -60,10 +60,11 @@
             </div>
                         <div id="viewCalculator" class="app-view hidden-view">
                 <div class="card input-section">
-                    <div class="toggle-row" id="mainCategoryToggle" style="margin-bottom: 24px;">
-                        <div class="toggle-btn active" data-cat="savings" style="font-size: 0.9rem;">Savings Schemes</div>
-                        <div class="toggle-btn" data-cat="insurance" style="font-size: 0.9rem;">Life Insurance</div>
-                    </div>
+                                        <div class="toggle-row hidden" id="mainCategoryToggle" style="display: none;">
+                        <div class="toggle-btn active" data-cat="savings">Savings Schemes</div>
+                        <div class="toggle-btn" data-cat="insurance">Life Insurance</div>
+                                        </div>
+                    
                     <h3 style="display: flex; align-items: center; gap: 8px;"><i class="ph ph-list-magnifying-glass" style="color: var(--ip-red);"></i> Select Scheme</h3>
                     <select id="schemeSelector" style="display: none;">
                         <option value="">-- Choose Scheme --</option>

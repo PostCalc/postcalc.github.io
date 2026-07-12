@@ -206,28 +206,71 @@ function captureAndShare() {
    PART 5: INIT & APP NAVIGATION
    ========================================= */
 function initNavigation() {
-    const viewHome = document.getElementById('viewHome'); const viewCalc = document.getElementById('viewCalculator'); const viewTreasury = document.getElementById('viewTreasury'); const viewTDBill = document.getElementById('viewTDBill'); const btnBack = document.getElementById('btnBackHome');
+    const viewHome = document.getElementById('viewHome'); 
+    const viewCalc = document.getElementById('viewCalculator'); 
+    const viewTreasury = document.getElementById('viewTreasury'); 
+    const viewTDBill = document.getElementById('viewTDBill'); 
+    const btnBack = document.getElementById('btnBackHome');
+
     function switchView(viewId, isInsurance = false) {
-        if(viewHome) viewHome.classList.add('hidden-view'); if(viewCalc) viewCalc.classList.add('hidden-view'); if(viewTreasury) viewTreasury.classList.add('hidden-view'); if(viewTDBill) viewTDBill.classList.add('hidden-view'); if(btnBack) btnBack.classList.remove('hidden');
+        if(viewHome) viewHome.classList.add('hidden-view'); 
+        if(viewCalc) viewCalc.classList.add('hidden-view'); 
+        if(viewTreasury) viewTreasury.classList.add('hidden-view'); 
+        if(viewTDBill) viewTDBill.classList.add('hidden-view'); 
+        if(btnBack) btnBack.classList.remove('hidden');
+
         if (viewId === 'calc' && viewCalc) {
-            viewCalc.classList.remove('hidden-view'); const catBtn = document.querySelector(`.toggle-btn[data-cat="${isInsurance ? 'insurance' : 'savings'}"]`); if(catBtn) catBtn.click();
+            viewCalc.classList.remove('hidden-view'); 
+            
+            // DIRECTLY FILTER THE DROPDOWN LIST (No toggle switch needed)
+            const targetCategory = isInsurance ? 'insurance' : 'savings';
+            document.querySelectorAll('#dropdownList li').forEach(li => {
+                if (li.getAttribute('data-category') === targetCategory) {
+                    li.classList.remove('hidden');
+                } else {
+                    li.classList.add('hidden');
+                }
+            });
+
+            // UPDATE HEADER TEXT & RESET SELECTION
+            const headerText = document.getElementById('ddHeaderText');
+            if (headerText) headerText.innerText = isInsurance ? "-- Choose Life Insurance --" : "-- Choose Saving Scheme --";
+            
+            const schemeSelect = document.getElementById('schemeSelector');
+            if (schemeSelect) {
+                schemeSelect.value = "";
+                schemeSelect.dispatchEvent(new Event('change'));
+            }
+            
+            const inputCard = document.getElementById('inputCard');
+            if (inputCard) inputCard.classList.add('hidden');
+            const resultsCard = document.getElementById('resultsCard');
+            if (resultsCard) resultsCard.classList.add('hidden');
+
         } else if (viewId === 'treasury' && viewTreasury) {
-            viewTreasury.classList.remove('hidden-view'); const tDate = document.getElementById('treasuryDate');
+            viewTreasury.classList.remove('hidden-view'); 
+            const tDate = document.getElementById('treasuryDate');
             if(tDate) { tDate.valueAsDate = new Date(); tDate.dispatchEvent(new Event('change')); }
         } else if (viewId === 'tdbill' && viewTDBill) {
-            viewTDBill.classList.remove('hidden-view'); const tdMonth = document.getElementById('tdBillMonth');
+            viewTDBill.classList.remove('hidden-view'); 
+            const tdMonth = document.getElementById('tdBillMonth');
             if(tdMonth) { const d = new Date(); tdMonth.value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0'); }
         }
     }
+
     document.getElementById('navSavings')?.addEventListener('click', () => switchView('calc', false));
     document.getElementById('navInsurance')?.addEventListener('click', () => switchView('calc', true));
     document.getElementById('navTreasury')?.addEventListener('click', () => switchView('treasury'));
     document.getElementById('navTDBill')?.addEventListener('click', () => switchView('tdbill'));
-    btnBack?.addEventListener('click', () => {
-        if(viewHome) viewHome.classList.remove('hidden-view'); if(viewCalc) viewCalc.classList.add('hidden-view'); if(viewTreasury) viewTreasury.classList.add('hidden-view'); if(viewTDBill) viewTDBill.classList.add('hidden-view'); btnBack.classList.add('hidden');
-    });
-}
 
+    btnBack?.addEventListener('click', () => {
+        if(viewHome) viewHome.classList.remove('hidden-view'); 
+        if(viewCalc) viewCalc.classList.add('hidden-view'); 
+        if(viewTreasury) viewTreasury.classList.add('hidden-view'); 
+        if(viewTDBill) viewTDBill.classList.add('hidden-view'); 
+        btnBack.classList.add('hidden');
+    });
+                                                             }
 function initCalculator() {
     const d = new Date(); const dOpen = document.getElementById('dateOpen'); if(dOpen) dOpen.valueAsDate = d;
     const pDate = document.getElementById('printDate'); if(pDate) pDate.innerText += d.toLocaleDateString();
